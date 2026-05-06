@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Paria Canyon — Trip Map</title>
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #1a1a1a; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+    .controls {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255,255,255,0.95);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 10;
+      max-width: 240px;
+    }
+    .controls h1 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+    .controls p { margin: 0; color: #555; font-size: 12px; }
+    .controls button {
+      margin-top: 8px;
+      padding: 4px 10px;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .controls button:hover { background: #f0f0f0; }
+
+    .photo-marker {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #d85a30;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      transition: transform 0.15s;
+    }
+    .photo-marker:hover { transform: scale(1.2); }
+    .photo-marker.active {
+      background: #fff;
+      color: #d85a30;
+      border-color: #d85a30;
+      transform: scale(1.25);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .nav-buttons button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .nav-buttons button:hover:not(:disabled) { background: #f0f0f0; }
+    .nav-buttons button:disabled { opacity: 0.35; cursor: default; }
+    .nav-buttons .btn-primary {
+      background: #d85a30;
+      color: white;
+      border-color: #d85a30;
+    }
+    .nav-buttons .btn-primary:hover:not(:disabled) { background: #c04e28; }
+
+    .progress {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+    }
+
+    .maplibregl-popup-content {
+      padding: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 280px;
+    }
+    .photo-popup img {
+      width: 100%;
+      display: block;
+      background: #eee;
+    }
+    .photo-popup .caption {
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .photo-popup .caption .title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .photo-popup .caption .meta {
+      color: #888;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="controls">
+  <h1>Paria Canyon</h1>
+  <p>White House TH → Lees Ferry. Click pins or use arrows.</p>
+  <div class="nav-buttons">
+    <button onclick="stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
+    <button onclick="stepTo(currentIdx + 1)" id="btn-next" class="btn-primary">Next →</button>
+  </div>
+  <div class="nav-buttons" style="margin-top:4px">
+    <button onclick="resetView()">Overview</button>
+    <button onclick="toggleTerrain()">Toggle 3D</button>
+  </div>
+  <div class="progress" id="progress">Click Next to begin</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+  // ============================================================
+  // CONFIG — paste your MapTiler key here
+  // ============================================================
+  const MAPTILER_KEY = 'bJdb61JHPsZDvT2pCEXd';
+
+  // ============================================================
+  // ROUTE — from onX GPX export (onx-markups-05052026.gpx), 155 points
+  // ============================================================
+  const route = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: [[-111.890533,37.080723],[-111.890549,37.080647],[-111.890541,37.077263],[-111.889236,37.071503],[-111.885681,37.068226],[-111.883316,37.064468],[-111.882545,37.062782],[-111.87928,37.059528],[-111.875198,37.057281],[-111.874763,37.052799],[-111.876076,37.050373],[-111.872833,37.047661],[-111.868996,37.044083],[-111.869347,37.041569],[-111.86895,37.036263],[-111.870346,37.0327],[-111.869591,37.029564],[-111.863991,37.028164],[-111.864105,37.026161],[-111.861847,37.024731],[-111.858917,37.022148],[-111.860817,37.019054],[-111.862511,37.015793],[-111.863525,37.013432],[-111.86615,37.010246],[-111.866325,37.008705],[-111.865509,37.006836],[-111.865654,37.004173],[-111.864006,36.999035],[-111.860573,37.000046],[-111.859322,36.999435],[-111.859634,36.999588],[-111.862854,36.999832],[-111.865067,37.001163],[-111.869835,37.002975],[-111.871994,37.011284],[-111.87368,37.013966],[-111.872375,37.013199],[-111.872238,37.010647],[-111.867943,37.003063],[-111.864838,37.001263],[-111.862869,36.999474],[-111.860283,37.000282],[-111.85955,36.999691],[-111.860443,36.998028],[-111.859901,36.994511],[-111.859772,36.991558],[-111.857941,36.988995],[-111.85498,36.98727],[-111.85614,36.985317],[-111.852722,36.983833],[-111.850899,36.983795],[-111.84948,36.985458],[-111.846863,36.984394],[-111.8451,36.986397],[-111.843979,36.987083],[-111.841583,36.98856],[-111.839188,36.98576],[-111.835625,36.985657],[-111.833206,36.983856],[-111.832687,36.982819],[-111.832809,36.981853],[-111.832207,36.982059],[-111.828705,36.985065],[-111.824677,36.984707],[-111.819725,36.984344],[-111.820107,36.987064],[-111.817871,36.988266],[-111.815971,36.989811],[-111.815002,36.991608],[-111.810921,36.99263],[-111.806747,36.992218],[-111.807938,36.989845],[-111.8032,36.992027],[-111.801926,36.99052],[-111.798096,36.991562],[-111.799889,36.993599],[-111.795937,36.994564],[-111.792603,36.995445],[-111.789268,36.996319],[-111.7873,36.995567],[-111.784454,36.993671],[-111.781532,36.993034],[-111.780243,36.991993],[-111.781654,36.989979],[-111.776848,36.988213],[-111.776833,36.983219],[-111.777557,36.979557],[-111.773972,36.977802],[-111.77478,36.974617],[-111.775612,36.971073],[-111.771027,36.969326],[-111.768852,36.968697],[-111.766434,36.971642],[-111.763992,36.972267],[-111.759834,36.968555],[-111.756592,36.964954],[-111.756462,36.964996],[-111.759552,36.963974],[-111.758789,36.960995],[-111.755341,36.963173],[-111.752716,36.961094],[-111.750427,36.958878],[-111.746735,36.960045],[-111.744751,36.960316],[-111.744011,36.956593],[-111.741074,36.955349],[-111.73806,36.954975],[-111.734413,36.955578],[-111.731026,36.954517],[-111.73056,36.952164],[-111.725311,36.952793],[-111.720963,36.952892],[-111.716354,36.950882],[-111.713554,36.948132],[-111.710373,36.948612],[-111.70594,36.949089],[-111.70166,36.947987],[-111.698257,36.947552],[-111.69416,36.945999],[-111.690735,36.945553],[-111.687622,36.946262],[-111.683929,36.947315],[-111.680786,36.947529],[-111.677811,36.945602],[-111.674515,36.944],[-111.672546,36.940384],[-111.670403,36.937614],[-111.668106,36.935081],[-111.665489,36.932247],[-111.663513,36.930805],[-111.660767,36.928207],[-111.655144,36.925255],[-111.652809,36.923031],[-111.648323,36.921654],[-111.64357,36.919613],[-111.639572,36.916565],[-111.636726,36.914257],[-111.633377,36.911633],[-111.633217,36.908737],[-111.627922,36.90414],[-111.624275,36.902195],[-111.619728,36.89922],[-111.615379,36.896999],[-111.614273,36.893055],[-111.611565,36.890442],[-111.612778,36.886822],[-111.609161,36.883541],[-111.607414,36.880215],[-111.60759,36.877213],[-111.602791,36.874088],[-111.597733,36.871292],[-111.595612,36.866028],[-111.593498,36.86499],[-111.591164,36.866066]]
+    }
+  };
+
+  // ============================================================
+  // PHOTOS — 20 markers evenly spaced along the real GPS track
+  // Replace img/title/caption/date with your actual photos
+  // ============================================================
+  const photos = [
+    { id: 1,  lng: -111.890533, lat: 37.080723, title: 'Start',
+      caption: 'Day 1.', date: 'Apr 4',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+1' },
+    { id: 2,  lng: -111.875198, lat: 37.057281, title: 'Photo 2',
+      caption: '', date: 'Apr 4',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+2' },
+    { id: 3,  lng: -111.869591, lat: 37.029564, title: 'Photo 3',
+      caption: '', date: 'Apr 4',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+3' },
+    { id: 4,  lng: -111.86615,  lat: 37.010246, title: 'Photo 4',
+      caption: '', date: 'Apr 5',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+4' },
+    { id: 5,  lng: -111.862854, lat: 36.999832, title: 'Photo 5',
+      caption: '', date: 'Apr 5',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+5' },
+    { id: 6,  lng: -111.862869, lat: 36.999474, title: 'Photo 6',
+      caption: '', date: 'Apr 5',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+6' },
+    { id: 7,  lng: -111.85614,  lat: 36.985317, title: 'Photo 7',
+      caption: '', date: 'Apr 5',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+7' },
+    { id: 8,  lng: -111.839188, lat: 36.98576,  title: 'Photo 8',
+      caption: '', date: 'Apr 5',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+8' },
+    { id: 9,  lng: -111.819725, lat: 36.984344, title: 'Photo 9',
+      caption: '', date: 'Apr 6',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+9' },
+    { id: 10, lng: -111.8032,   lat: 36.992027, title: 'Photo 10',
+      caption: '', date: 'Apr 6',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+10' },
+    { id: 11, lng: -111.784454, lat: 36.993671, title: 'Photo 11',
+      caption: '', date: 'Apr 6',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+11' },
+    { id: 12, lng: -111.77478,  lat: 36.974617, title: 'Photo 12',
+      caption: '', date: 'Apr 6',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+12' },
+    { id: 13, lng: -111.756462, lat: 36.964996, title: 'Photo 13',
+      caption: '', date: 'Apr 7',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+13' },
+    { id: 14, lng: -111.744011, lat: 36.956593, title: 'Photo 14',
+      caption: '', date: 'Apr 7',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+14' },
+    { id: 15, lng: -111.716354, lat: 36.950882, title: 'Photo 15',
+      caption: '', date: 'Apr 7',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+15' },
+    { id: 16, lng: -111.683929, lat: 36.947315, title: 'Photo 16',
+      caption: '', date: 'Apr 7',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+16' },
+    { id: 17, lng: -111.663513, lat: 36.930805, title: 'Photo 17',
+      caption: '', date: 'Apr 8',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+17' },
+    { id: 18, lng: -111.633377, lat: 36.911633, title: 'Photo 18',
+      caption: '', date: 'Apr 8',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+18' },
+    { id: 19, lng: -111.612778, lat: 36.886822, title: 'Photo 19',
+      caption: '', date: 'Apr 8',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+19' },
+    { id: 20, lng: -111.591164, lat: 36.866066, title: 'Lees Ferry',
+      caption: 'Done.', date: 'Apr 8',
+      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+20' }
+  ];
+
+  // ============================================================
+  // MAP SETUP
+  // ============================================================
+  const initialView = {
+    center: [-111.741, 36.973],
+    zoom: 10,
+    pitch: 60,
+    bearing: -15
+  };
+
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: `https://api.maptiler.com/maps/topo-v2/style.json?key=${MAPTILER_KEY}`,
+    ...initialView,
+    maxPitch: 85
+  });
+
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
+  map.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }));
+
+  let terrainOn = true;
+
+  map.on('load', () => {
+    // Add terrain DEM source
+    map.addSource('terrain', {
+      type: 'raster-dem',
+      url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${MAPTILER_KEY}`,
+      tileSize: 256
+    });
+
+    map.setTerrain({ source: 'terrain', exaggeration: 1.5 });
+
+    // Sky layer for the horizon when pitched
+    map.setSky({
+      'sky-color': '#a8c8e6',
+      'sky-horizon-blend': 0.6,
+      'horizon-color': '#f0e6d6',
+      'horizon-fog-blend': 0.8,
+      'fog-color': '#e8dcc8',
+      'fog-ground-blend': 0.3
+    });
+
+    // Hillshade for extra depth
+    map.addLayer({
+      id: 'hillshade',
+      type: 'hillshade',
+      source: 'terrain',
+      paint: {
+        'hillshade-shadow-color': '#3a2a1a',
+        'hillshade-highlight-color': '#fff8e8',
+        'hillshade-exaggeration': 0.5
+      }
+    });
+
+    // Route line
+    map.addSource('route', { type: 'geojson', data: route });
+    map.addLayer({
+      id: 'route-shadow',
+      type: 'line',
+      source: 'route',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#000',
+        'line-width': 6,
+        'line-opacity': 0.25,
+        'line-blur': 3
+      }
+    });
+    map.addLayer({
+      id: 'route-line',
+      type: 'line',
+      source: 'route',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#d85a30',
+        'line-width': 3
+      }
+    });
+
+    // Photo markers
+    photos.forEach(photo => {
+      const el = document.createElement('div');
+      el.className = 'photo-marker';
+      el.textContent = photo.id;
+
+      const popup = new maplibregl.Popup({ offset: 20, closeButton: false })
+        .setHTML(`
+          <div class="photo-popup">
+            <img src="${photo.img}" alt="${photo.title}" />
+            <div class="caption">
+              <div class="title">${photo.title}</div>
+              <div>${photo.caption}</div>
+              <div class="meta">${photo.date}</div>
+            </div>
+          </div>
+        `);
+
+      new maplibregl.Marker({ element: el })
+        .setLngLat([photo.lng, photo.lat])
+        .setPopup(popup)
+        .addTo(map);
+    });
+  });
+
+  // Controls
+  function resetView() {
+    map.flyTo({ ...initialView, duration: 2000 });
+  }
+
+  function toggleTerrain() {
+    terrainOn = !terrainOn;
+    map.setTerrain(terrainOn ? { source: 'terrain', exaggeration: 1.5 } : null);
+    if (!terrainOn) map.easeTo({ pitch: 0, duration: 800 });
+    else map.easeTo({ pitch: 60, duration: 800 });
+  }
+</script>
+
+</body>
+</html>

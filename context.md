@@ -32,25 +32,33 @@ Why this combo: MapLibre is free and open, MapTiler's free tier covers a persona
 - Topo basemap + extra hillshade layer for depth
 - Desert sky/fog palette
 - Route line with shadow, drawn from real GPS track
-- 20 numbered photo markers evenly spaced along the route
+- Photo markers pinned to real EXIF GPS coordinates
 - Click-to-popup on each marker (photo + title + caption + date)
-- Reset view + Toggle 3D buttons
+- **Cinematic camera navigation** — Next/Prev buttons fly between photos with auto-computed bearing (faces direction of travel), 2.2s transition, popup auto-opens on arrival
+- Clicking a pin directly triggers a faster 1.4s fly to that marker
+- Active marker highlights so you always know your position in the story
+- Progress counter ("3 of 12")
+- Overview button resets to full-route view and clears active state
+- Toggle 3D button
 
 ## Data
 
 **Route**: Downsampled from 3,517 raw GPS points to 155 points (every 23rd point, keeping first and last). Stored inline in the HTML as a GeoJSON LineString.
 
-**Photo markers**: 20 positions evenly distributed along the downsampled route. Currently placeholders — swap in real photos by updating each entry in the `photos` array:
+**Photo markers**: 12 test photos from `photos/test1/`, sorted chronologically. Coordinates pulled from EXIF GPS — each pin is the exact location where the shot was taken. Titles and captions are placeholders pending final photo selection.
 
+The `photos` array schema:
 ```js
-{ id: 1, lng: -111.890533, lat: 37.080723,
+{ id: 1, lng: -111.863678, lat: 37.027364,
+  date: 'Apr 4',
   title: 'Your title',
   caption: 'Your caption.',
-  date: 'Apr 4',
-  img: 'URL or relative path to photo' }
+  img: 'photos/test1/IMG_7442.jpeg' }
 ```
 
-Photos can be hosted on Cloudinary, Vercel, or served locally. If your photos have EXIF GPS data, the `exifr` library can auto-extract coordinates.
+Photos are served as relative paths and work locally when opened from the project root. For hosting, photos go up alongside the HTML (or move to Cloudinary/Vercel for CDN delivery).
+
+**EXIF extraction**: done with Pillow (`PIL`) in a short Python script — reads `GPSLatitude`/`GPSLongitude` rational tuples, converts DMS→decimal degrees, sorts by `DateTimeOriginal`. No external tools needed beyond `pip install Pillow`.
 
 ## What was ruled out (and why)
 
@@ -66,11 +74,13 @@ Photos can be hosted on Cloudinary, Vercel, or served locally. If your photos ha
 
 ## Next steps (in rough priority order)
 
-1. **Real photos** — update `title`, `caption`, `date`, and `img` for each of the 20 markers. Markers are already on the correct GPS coordinates.
+1. **Final photo selection** — pick the real photos, drop into `photos/`, run the EXIF extraction script to get coordinates, update `title` and `caption` per entry.
 
-2. **Scrollytelling** — fork the [Mapbox storytelling template](https://github.com/mapbox/storytelling), point it at MapLibre + MapTiler, define each photo as a chapter waypoint. The map cinematically flies between photos as you scroll.
+2. **Per-photo camera tuning** — each photo entry can get a hand-set `bearing`, `zoom`, and `pitch`. `stepTo()` uses `bearingBetween()` auto-compute as a fallback; add optional overrides per entry when you want a specific frame (e.g. face up-canyon for a narrows shot vs. bird's-eye for a camp).
 
-3. **Visual polish** — custom map style via MapTiler Cloud (fork `topo-v2`, edit colors/typography), custom marker icons, elevation profile chart at bottom (Chart.js + sample the DEM along the route), sepia/retro CSS filters.
+3. **Visual polish** — custom map style via MapTiler Cloud (fork `topo-v2`), custom marker icons, elevation profile chart (Chart.js + sample DEM along route), sepia/retro CSS filters.
+
+4. **Hosting** — single HTML file drops onto Vercel, Netlify, or GitHub Pages with zero config. Photos go up alongside it, or move to Cloudinary for CDN delivery.
 
 ## MapTiler API key
 

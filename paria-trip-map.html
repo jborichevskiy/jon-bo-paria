@@ -122,7 +122,7 @@
 
 <div class="controls">
   <h1>Paria Canyon</h1>
-  <p>White House TH → Lees Ferry. Click pins or use arrows.</p>
+  <p>White House TH → Lees Ferry, Apr 4–7. Click pins or use arrows.</p>
   <div class="nav-buttons">
     <button onclick="stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
     <button onclick="stepTo(currentIdx + 1)" id="btn-next" class="btn-primary">Next →</button>
@@ -154,70 +154,22 @@
   };
 
   // ============================================================
-  // PHOTOS — 20 markers evenly spaced along the real GPS track
-  // Replace img/title/caption/date with your actual photos
+  // PHOTOS — real GPS from EXIF, sorted chronologically
+  // titles/captions are placeholders — fill in yours
   // ============================================================
   const photos = [
-    { id: 1,  lng: -111.890533, lat: 37.080723, title: 'Start',
-      caption: 'Day 1.', date: 'Apr 4',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+1' },
-    { id: 2,  lng: -111.875198, lat: 37.057281, title: 'Photo 2',
-      caption: '', date: 'Apr 4',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+2' },
-    { id: 3,  lng: -111.869591, lat: 37.029564, title: 'Photo 3',
-      caption: '', date: 'Apr 4',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+3' },
-    { id: 4,  lng: -111.86615,  lat: 37.010246, title: 'Photo 4',
-      caption: '', date: 'Apr 5',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+4' },
-    { id: 5,  lng: -111.862854, lat: 36.999832, title: 'Photo 5',
-      caption: '', date: 'Apr 5',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+5' },
-    { id: 6,  lng: -111.862869, lat: 36.999474, title: 'Photo 6',
-      caption: '', date: 'Apr 5',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+6' },
-    { id: 7,  lng: -111.85614,  lat: 36.985317, title: 'Photo 7',
-      caption: '', date: 'Apr 5',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+7' },
-    { id: 8,  lng: -111.839188, lat: 36.98576,  title: 'Photo 8',
-      caption: '', date: 'Apr 5',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+8' },
-    { id: 9,  lng: -111.819725, lat: 36.984344, title: 'Photo 9',
-      caption: '', date: 'Apr 6',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+9' },
-    { id: 10, lng: -111.8032,   lat: 36.992027, title: 'Photo 10',
-      caption: '', date: 'Apr 6',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+10' },
-    { id: 11, lng: -111.784454, lat: 36.993671, title: 'Photo 11',
-      caption: '', date: 'Apr 6',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+11' },
-    { id: 12, lng: -111.77478,  lat: 36.974617, title: 'Photo 12',
-      caption: '', date: 'Apr 6',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+12' },
-    { id: 13, lng: -111.756462, lat: 36.964996, title: 'Photo 13',
-      caption: '', date: 'Apr 7',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+13' },
-    { id: 14, lng: -111.744011, lat: 36.956593, title: 'Photo 14',
-      caption: '', date: 'Apr 7',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+14' },
-    { id: 15, lng: -111.716354, lat: 36.950882, title: 'Photo 15',
-      caption: '', date: 'Apr 7',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+15' },
-    { id: 16, lng: -111.683929, lat: 36.947315, title: 'Photo 16',
-      caption: '', date: 'Apr 7',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+16' },
-    { id: 17, lng: -111.663513, lat: 36.930805, title: 'Photo 17',
-      caption: '', date: 'Apr 8',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+17' },
-    { id: 18, lng: -111.633377, lat: 36.911633, title: 'Photo 18',
-      caption: '', date: 'Apr 8',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+18' },
-    { id: 19, lng: -111.612778, lat: 36.886822, title: 'Photo 19',
-      caption: '', date: 'Apr 8',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+19' },
-    { id: 20, lng: -111.591164, lat: 36.866066, title: 'Lees Ferry',
-      caption: 'Done.', date: 'Apr 8',
-      img: 'https://placehold.co/400x280/d85a30/white?text=Photo+20' }
+    { id:  1, lng: -111.863678, lat: 37.027364, date: 'Apr 4', title: 'Photo 1',  caption: '', img: 'photos/test1/IMG_7442.jpeg' },
+    { id:  2, lng: -111.866706, lat: 37.010642, date: 'Apr 4', title: 'Photo 2',  caption: '', img: 'photos/test1/IMG_7451.jpeg' },
+    { id:  3, lng: -111.869492, lat: 37.002422, date: 'Apr 4', title: 'Photo 3',  caption: '', img: 'photos/test1/IMG_7459.jpeg' },
+    { id:  4, lng: -111.859558, lat: 36.999753, date: 'Apr 4', title: 'Photo 4',  caption: '', img: 'photos/test1/IMG_7480.jpeg' },
+    { id:  5, lng: -111.871606, lat: 37.013233, date: 'Apr 4', title: 'Photo 5',  caption: '', img: 'photos/test1/IMG_7466.jpeg' },
+    { id:  6, lng: -111.857103, lat: 36.988461, date: 'Apr 5', title: 'Photo 6',  caption: '', img: 'photos/test1/IMG_7495.jpeg' },
+    { id:  7, lng: -111.832633, lat: 36.984425, date: 'Apr 5', title: 'Photo 7',  caption: '', img: 'photos/test1/IMG_7502.jpeg' },
+    { id:  8, lng: -111.740547, lat: 36.955364, date: 'Apr 6', title: 'Photo 8',  caption: '', img: 'photos/test1/IMG_7534.jpeg' },
+    { id:  9, lng: -111.665864, lat: 36.932278, date: 'Apr 6', title: 'Photo 9',  caption: '', img: 'photos/test1/IMG_7581.jpeg' },
+    { id: 10, lng: -111.664694, lat: 36.931631, date: 'Apr 6', title: 'Photo 10', caption: '', img: 'photos/test1/IMG_7586.jpeg' },
+    { id: 11, lng: -111.664703, lat: 36.931622, date: 'Apr 6', title: 'Photo 11', caption: '', img: 'photos/test1/IMG_7587.jpeg' },
+    { id: 12, lng: -111.587272, lat: 36.865428, date: 'Apr 7', title: 'Lees Ferry', caption: 'Done.', img: 'photos/test1/IMG_7613.jpeg' },
   ];
 
   // ============================================================
@@ -300,7 +252,7 @@
     });
 
     // Photo markers
-    photos.forEach(photo => {
+    markers = photos.map(photo => {
       const el = document.createElement('div');
       el.className = 'photo-marker';
       el.textContent = photo.id;
@@ -317,15 +269,84 @@
           </div>
         `);
 
-      new maplibregl.Marker({ element: el })
+      const marker = new maplibregl.Marker({ element: el })
         .setLngLat([photo.lng, photo.lat])
         .setPopup(popup)
         .addTo(map);
+
+      el.addEventListener('click', () => {
+        const idx = photos.indexOf(photo);
+        stepTo(idx, true);
+      });
+
+      return marker;
     });
   });
 
+  // ============================================================
+  // CAMERA NAVIGATION
+  // ============================================================
+  let currentIdx = -1;
+  let markers = [];
+
+  function bearingBetween(a, b) {
+    const toRad = d => d * Math.PI / 180;
+    const toDeg = r => r * 180 / Math.PI;
+    const dLng = toRad(b[0] - a[0]);
+    const lat1 = toRad(a[1]), lat2 = toRad(b[1]);
+    const y = Math.sin(dLng) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+
+  function stepTo(idx, fromMarkerClick = false) {
+    if (idx < 0 || idx >= photos.length) return;
+
+    // Deactivate previous marker
+    if (currentIdx >= 0) {
+      markers[currentIdx].getElement().classList.remove('active');
+      markers[currentIdx].getPopup().remove();
+    }
+
+    currentIdx = idx;
+    const p = photos[idx];
+
+    // Compute bearing: face toward next photo (or keep last bearing at end)
+    const next = photos[Math.min(idx + 1, photos.length - 1)];
+    const bearing = bearingBetween([p.lng, p.lat], [next.lng, next.lat]);
+
+    map.flyTo({
+      center: [p.lng, p.lat],
+      zoom: 13.5,
+      pitch: 65,
+      bearing,
+      duration: fromMarkerClick ? 1400 : 2200,
+      essential: true
+    });
+
+    map.once('moveend', () => {
+      markers[currentIdx].getElement().classList.add('active');
+      markers[currentIdx].togglePopup();
+    });
+
+    // Update UI
+    document.getElementById('btn-prev').disabled = idx === 0;
+    document.getElementById('btn-next').disabled = idx === photos.length - 1;
+    document.getElementById('btn-next').textContent = idx === photos.length - 1 ? 'Done' : 'Next →';
+    document.getElementById('progress').textContent = `${idx + 1} of ${photos.length}`;
+  }
+
   // Controls
   function resetView() {
+    if (currentIdx >= 0) {
+      markers[currentIdx].getElement().classList.remove('active');
+      markers[currentIdx].getPopup().remove();
+    }
+    currentIdx = -1;
+    document.getElementById('btn-prev').disabled = true;
+    document.getElementById('btn-next').disabled = false;
+    document.getElementById('btn-next').textContent = 'Next →';
+    document.getElementById('progress').textContent = 'Click Next to begin';
     map.flyTo({ ...initialView, duration: 2000 });
   }
 

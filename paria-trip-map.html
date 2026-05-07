@@ -12,19 +12,25 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #111;
       display: flex;
+      flex-direction: column;
       height: 100vh;
       overflow: hidden;
     }
 
-    /* ── LEFT COLUMN: map + elevation strip ── */
+    /* ── TOP ROW: map + right panel side by side ── */
+    .top-row {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── LEFT COLUMN: map only ── */
     .map-col {
       flex: 1;
       min-width: 0;
-      display: flex;
-      flex-direction: column;
       position: relative;
     }
-    #map { flex: 1; min-height: 0; }
+    #map { width: 100%; height: 100%; }
 
     #elevation-strip {
       height: 160px;
@@ -52,7 +58,7 @@
       top: 8px;
       background: rgba(0,0,0,0.82);
       color: #ccc;
-      font-size: 11px;
+      font-size: 12px;
       font-family: -apple-system, "Segoe UI", sans-serif;
       line-height: 1.65;
       padding: 5px 9px;
@@ -67,50 +73,121 @@
 
     /* ── RIGHT PANEL ── */
     .right-panel {
-      width: 360px;
-      flex-shrink: 0;
+      flex: 0 0 50%;
+      min-width: 280px;
       background: #161616;
       border-left: 1px solid #252525;
       display: flex;
       flex-direction: column;
-      padding: 16px 14px 14px;
+      overflow: hidden;
+    }
+
+    .rp-top {
+      padding: 16px 14px 0;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .rp-body {
+      flex: 1;
+      min-height: 0;
       overflow-y: auto;
+      padding: 10px 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rp-footer {
+      flex-shrink: 0;
+      padding: 10px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid #1e1e1e;
+      background: #161616;
     }
 
     .rp-header h1 {
       margin: 0 0 3px;
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 700;
       color: #f0ede8;
       letter-spacing: 0.01em;
     }
     .rp-header p {
       margin: 0;
-      font-size: 11px;
+      font-size: 12px;
       color: #555;
     }
 
     .rp-photo {
-      background: #111;
+      background: #161616;
       border-radius: 5px;
       overflow: hidden;
-      aspect-ratio: 4 / 3;
+      aspect-ratio: 16 / 9;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      cursor: zoom-in;
     }
     .rp-photo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
       display: none;
     }
     .rp-photo img.visible { display: block; }
+
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: flex;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.9);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #lightbox.open { opacity: 1; pointer-events: auto; }
+    #lightbox img {
+      max-width: 95vw;
+      max-height: 95vh;
+      object-fit: contain;
+      border-radius: 3px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      cursor: default;
+    }
+    #lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 20px;
+      line-height: 34px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    #lightbox-close:hover { background: rgba(255,255,255,0.22); }
     .rp-placeholder {
       color: #333;
-      font-size: 12px;
+      font-size: 13px;
       text-align: center;
       line-height: 2;
       letter-spacing: 0.03em;
@@ -118,33 +195,36 @@
 
     .rp-meta { flex-shrink: 0; }
     .rp-meta .title {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       color: #ddd8d2;
       min-height: 1.2em;
     }
+    .rp-meta .person {
+      font-size: 12px;
+      color: #888;
+      margin-top: 1px;
+    }
     .rp-meta .date {
-      font-size: 11px;
+      font-size: 12px;
       color: #555;
       margin-top: 2px;
     }
 
     .rp-caption {
-      font-size: 12px;
-      color: #666;
+      font-size: 13px;
+      color: #999;
       line-height: 1.55;
-      flex: 1;
     }
 
     .rp-nav {
       display: flex;
       gap: 8px;
-      flex-shrink: 0;
     }
     .rp-nav button {
       flex: 1;
-      padding: 8px 6px;
-      font-size: 12px;
+      padding: 9px 6px;
+      font-size: 13px;
       font-weight: 600;
       border: 1px solid #2e2e2e;
       background: #1e1e1e;
@@ -163,29 +243,51 @@
     .rp-nav .btn-primary:hover:not(:disabled) { background: #c04e28; }
 
     .rp-progress {
-      font-size: 11px;
+      font-size: 12px;
       color: #444;
       text-align: center;
-      flex-shrink: 0;
     }
 
-    .rp-controls {
+/* ── BEARING TUNING ── */
+    .rp-bearing {
+      border-top: 1px solid #222;
+      padding-top: 8px;
+    }
+    .bearing-row {
       display: flex;
+      align-items: center;
       gap: 6px;
+      font-size: 12px;
+    }
+    .bearing-label {
+      color: #444;
       flex-shrink: 0;
     }
-    .rp-controls button {
+    .bearing-val {
       flex: 1;
-      padding: 5px 4px;
-      font-size: 11px;
+      color: #666;
+      font-variant-numeric: tabular-nums;
+    }
+    .bearing-val.saved {
+      color: #d85a30;
+      font-weight: 600;
+    }
+    .bearing-btn {
+      padding: 3px 8px;
+      font-size: 12px;
       border: 1px solid #2a2a2a;
       background: #1a1a1a;
       color: #777;
-      border-radius: 4px;
+      border-radius: 3px;
       cursor: pointer;
-      transition: background 0.1s;
+      flex-shrink: 0;
     }
-    .rp-controls button:hover { background: #242424; }
+    .bearing-btn:hover { background: #242424; }
+    .bearing-btn.bearing-clear {
+      color: #555;
+      padding: 3px 6px;
+    }
+    .bearing-btn.bearing-clear:hover { color: #d85a30; }
 
     /* ── MAP MARKERS ── */
     .photo-marker {
@@ -205,31 +307,78 @@
       transition: transform 0.15s;
     }
     .photo-marker:hover { transform: scale(1.2); }
-    .photo-marker.active {
-      background: #fff;
-      color: #d85a30;
-      border-color: #d85a30;
-      transform: scale(1.25);
-    }
+    .photo-marker.active { transform: scale(1.25); }
 
-    /* ── POPUP (stays on map, minimal) ── */
-    .maplibregl-popup-content {
+    /* ── MAP HAMBURGER MENU ── */
+    #map-menu {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 5;
+    }
+    #map-menu-btn {
+      width: 30px;
+      height: 30px;
+      background: rgba(20,20,20,0.72);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       padding: 0;
-      border-radius: 6px;
-      overflow: hidden;
-      max-width: 160px;
-      background: #1c1c1c;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      transition: background 0.15s;
     }
-    .maplibregl-popup-tip { border-top-color: #1c1c1c !important; }
-    .photo-popup img { width: 100%; display: block; }
-    .photo-popup .pop-meta {
-      padding: 5px 8px;
-      font-size: 10px;
-      color: #777;
+    #map-menu-btn:hover { background: rgba(40,40,40,0.88); }
+    #map-menu-btn span {
+      display: block;
+      width: 14px;
+      height: 1.5px;
+      background: rgba(255,255,255,0.65);
+      border-radius: 1px;
+      transition: background 0.15s;
+    }
+    #map-menu-btn:hover span { background: rgba(255,255,255,0.9); }
+    #map-menu-dropdown {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 6px;
+      background: rgba(18,18,18,0.88);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 5px;
+      padding: 5px;
+      backdrop-filter: blur(6px);
+      min-width: 110px;
+    }
+    #map-menu-dropdown.open { display: flex; }
+    #map-menu-dropdown button {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-align: left;
+      padding: 6px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+    #map-menu-dropdown button:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    #map-menu-dropdown button.active { color: #d85a30; }
+
+    /* ── PERSON COLOR LEGEND ── */
+    .rp-person { display: flex; align-items: center; gap: 5px; }
+    .person-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
 
-    /* ── DEBUG PANEL ── */
+
+/* ── DEBUG PANEL ── */
     #debug-panel {
       display: none;
       position: absolute;
@@ -253,12 +402,19 @@
 </head>
 <body>
 
+<div class="top-row">
+
 <div class="map-col">
   <div id="map"></div>
-  <div id="elevation-strip">
-    <canvas id="elevation-canvas"></canvas>
-    <div id="chart-cursor"></div>
-    <div id="chart-tooltip"></div>
+  <div id="map-menu">
+    <button id="map-menu-btn" onclick="toggleMapMenu()">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="map-menu-dropdown">
+      <button onclick="resetView(); closeMapMenu()">Overview</button>
+      <button onclick="toggleTerrain(); closeMapMenu()">Toggle 3D</button>
+      <button onclick="toggleSatellite(); closeMapMenu()" id="btn-satellite">Satellite</button>
+    </div>
   </div>
   <div id="debug-panel">
     <div><span class="dbg-label">lng  </span><span id="dbg-lng">—</span></div>
@@ -274,32 +430,56 @@
 </div>
 
 <div class="right-panel">
-  <div class="rp-header">
-    <h1>Paria Canyon</h1>
-    <p>White House TH → Lees Ferry · Apr 4–8, 2026</p>
+  <div class="rp-top">
+    <div class="rp-header">
+      <h1>Paria Canyon</h1>
+      <p>White House TH → Lees Ferry · Apr 4–8, 2026</p>
+    </div>
+    <div class="rp-photo">
+      <img id="rp-img" src="" alt="" />
+      <div class="rp-placeholder" id="rp-placeholder">Click Next →<br>to begin</div>
+    </div>
   </div>
-  <div class="rp-photo">
-    <img id="rp-img" src="" alt="" />
-    <div class="rp-placeholder" id="rp-placeholder">Click Next →<br>to begin</div>
+  <div class="rp-body">
+    <div class="rp-meta">
+      <div class="title" id="rp-title"></div>
+      <div class="person" id="rp-person"></div>
+      <div class="date" id="rp-date"></div>
+    </div>
+    <div class="rp-caption" id="rp-caption"></div>
+    <div class="rp-bearing" id="rp-bearing" style="display:none">
+      <div class="bearing-row">
+        <span class="bearing-label">Viewpoint</span>
+        <span class="bearing-val" id="bearing-val">auto</span>
+        <button class="bearing-btn" onclick="saveViewpoint()">Set</button>
+        <button class="bearing-btn bearing-clear" id="bearing-clear" onclick="clearViewpoint()" style="display:none">✕ clear</button>
+      </div>
+    </div>
   </div>
-  <div class="rp-meta">
-    <div class="title" id="rp-title"></div>
-    <div class="date" id="rp-date"></div>
+  <div class="rp-footer">
+    <div class="rp-nav">
+      <button onclick="stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
+      <button onclick="stepTo(currentIdx + 1)" id="btn-next" class="btn-primary">Next →</button>
+    </div>
+    <div class="rp-progress" id="progress">— of 6</div>
   </div>
-  <div class="rp-caption" id="rp-caption"></div>
-  <div class="rp-nav">
-    <button onclick="stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
-    <button onclick="stepTo(currentIdx + 1)" id="btn-next" class="btn-primary">Next →</button>
-  </div>
-  <div class="rp-progress" id="progress">— of 12</div>
-  <div class="rp-controls">
-    <button onclick="resetView()">Overview</button>
-    <button onclick="toggleTerrain()">3D</button>
-    <button onclick="toggleSatellite()" id="btn-satellite">Satellite</button>
-  </div>
+</div><!-- /.right-panel -->
+
+</div><!-- /.top-row -->
+
+<div id="elevation-strip">
+  <canvas id="elevation-canvas"></canvas>
+  <div id="chart-cursor"></div>
+  <div id="chart-tooltip"></div>
+</div>
+
+<div id="lightbox">
+  <div id="lightbox-close" onclick="closeLightbox()">✕</div>
+  <img id="lightbox-img" src="" alt="" />
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="trip-data.js"></script>
 <script>
   const MAPTILER_KEY = 'bJdb61JHPsZDvT2pCEXd';
 
@@ -321,23 +501,92 @@
   const elevationProfile = [[0.0,1307.5,11.35],[0.007,1304.9,11.44],[0.0188,1302.8,11.59],[0.028,1304.2,11.68],[0.037,1322.9,11.77],[0.0405,1293.5,11.86],[0.0492,1292.3,11.98],[0.0573,1287.6,12.09],[0.0668,1297.8,12.19],[0.0714,1301.1,12.31],[0.0795,1281.6,12.44],[0.0888,1278.6,12.53],[0.0943,1279.2,12.6],[0.1044,1279.1,12.72],[0.1129,1279.0,12.8],[0.1194,1276.0,12.94],[0.1291,1273.3,13.02],[0.1332,1306.6,13.11],[0.1377,1282.2,13.21],[0.1447,1306.6,13.34],[0.1514,1295.6,13.95],[0.1588,1310.3,14.09],[0.1641,1285.7,14.19],[0.1715,1325.5,14.35],[0.1756,1285.8,14.47],[0.1789,1292.3,14.57],[0.1847,1288.4,14.71],[0.1959,1336.9,14.82],[0.2027,1282.2,15.02],[0.205,1315.5,15.16],[0.2053,1267.5,15.31],[0.2113,1322.9,15.63],[0.2153,1303.6,15.75],[0.2239,1395.7,16.05],[0.2414,1361.6,16.16],[0.2468,1335.6,16.28],[0.2478,1332.7,16.37],[0.2533,1341.9,17.04],[0.2705,1346.6,17.13],[0.2768,1304.9,17.23],[0.2823,1313.3,17.32],[0.2866,1282.4,17.47],[0.2891,1262.6,17.87],[0.2927,1274.5,17.92],[0.2995,1271.4,18.09],[0.3067,1297.4,18.43],[0.3123,1251.4,18.51],[0.3184,1247.7,18.59],[0.3218,1249.6,18.68],[0.3278,1292.7,18.76],[0.3308,1244.3,19.4],[0.3348,1263.8,9.27],[0.3394,1234.6,9.37],[0.3441,1251.0,9.5],[0.3464,1246.0,9.59],[0.352,1279.6,9.7],[0.3591,1248.5,9.81],[0.3646,1233.8,9.92],[0.3705,1223.4,10.05],[0.3723,1222.7,10.26],[0.3739,1246.1,10.4],[0.3742,1239.0,10.5],[0.3825,1218.7,10.59],[0.3889,1225.4,10.66],[0.3966,1217.8,10.75],[0.4021,1221.5,10.89],[0.4076,1233.2,10.98],[0.4119,1264.9,11.1],[0.4162,1204.5,11.21],[0.4232,1220.4,11.3],[0.4302,1217.8,11.52],[0.4359,1201.2,12.19],[0.4452,1212.5,12.42],[0.4495,1197.2,12.52],[0.4559,1199.3,12.63],[0.4606,1216.0,12.72],[0.4671,1200.4,12.82],[0.4723,1200.8,12.94],[0.4785,1219.6,13.14],[0.4832,1185.5,13.24],[0.4873,1196.6,13.34],[0.4928,1182.0,13.45],[0.4961,1188.0,13.59],[0.5009,1181.5,13.73],[0.5105,1180.0,13.84],[0.5206,1203.9,14.2],[0.5286,1163.2,14.62],[0.5349,1164.0,14.75],[0.5426,1163.9,14.86],[0.5495,1171.0,14.96],[0.558,1163.3,15.04],[0.5618,1161.0,15.19],[0.5687,1168.4,15.3],[0.5731,1158.5,15.48],[0.5832,1154.1,15.6],[0.5922,1152.0,15.72],[0.5928,1159.4,16.12],[0.5982,1155.4,16.21],[0.6047,1148.0,16.3],[0.6118,1147.7,16.43],[0.6178,1149.1,16.53],[0.624,1145.4,16.66],[0.6306,1147.2,16.86],[0.6344,1147.3,16.97],[0.6424,1137.8,17.08],[0.648,1133.0,17.22],[0.6527,1128.3,17.34],[0.6588,1129.3,17.43],[0.6653,1124.4,17.58],[0.6703,1120.1,9.47],[0.6792,1117.4,9.57],[0.6864,1113.5,9.64],[0.6948,1119.1,9.73],[0.7026,1107.9,9.86],[0.7081,1104.2,9.92],[0.7153,1102.1,9.98],[0.7229,1094.2,10.08],[0.7287,1092.8,10.81],[0.736,1099.2,10.91],[0.7419,1083.9,10.98],[0.7469,1081.6,11.08],[0.7539,1082.1,11.16],[0.759,1087.2,11.25],[0.7652,1092.6,11.38],[0.7718,1090.3,11.45],[0.7794,1085.2,11.55],[0.7866,1055.5,11.75],[0.7931,1037.3,11.91],[0.8005,1023.5,12.05],[0.8044,1021.6,12.14],[0.8118,1023.4,12.68],[0.8225,1015.2,12.76],[0.829,1012.1,12.86],[0.8369,1009.9,12.95],[0.8456,1004.7,13.09],[0.8546,999.0,13.59],[0.8618,997.4,13.68],[0.8696,993.8,13.77],[0.8753,990.9,13.82],[0.888,990.7,13.92],[0.8954,986.0,13.98],[0.9052,978.4,14.08],[0.9137,975.3,14.26],[0.9219,974.8,14.32],[0.9288,968.7,14.44],[0.9361,971.1,14.65],[0.945,971.0,14.77],[0.9525,969.3,14.9],[0.959,969.0,14.96],[0.9687,963.0,15.03],[0.979,961.6,15.19],[0.991,955.6,15.96],[0.9948,955.3,16.04],[1.0,954.6,16.08]];
 
   // ============================================================
-  // PHOTOS
+  // PHOTOS — loaded dynamically from photos/trip/{person}/captions.json
+  // Add more names to TRIP_PERSONS to include additional photographers.
+  // captions.json schema per entry:
+  //   caption: string  (title auto-derived as text before first " - ")
+  //   date:    string  e.g. "Apr 4"  (optional)
+  //   time:    string  e.g. "2:30 PM" (optional; auto-derived from routeFrac if omitted)
+  //   photos:  array of { file, lat, lng, routeFrac, bearing? }
   // ============================================================
-  const LOREM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.';
-  const photos = [
-    { id:  1, lng: -111.863678, lat: 37.027364, date: 'Apr 4', title: 'Photo 1',  caption: LOREM, img: 'photos/test1/IMG_7442.jpeg', bearing: 167.0, routeFrac: 0.1291 },
-    { id:  2, lng: -111.866706, lat: 37.010642, date: 'Apr 4', title: 'Photo 2',  caption: LOREM, img: 'photos/test1/IMG_7451.jpeg', bearing: 178.9, routeFrac: 0.1715 },
-    { id:  3, lng: -111.869492, lat: 37.002422, date: 'Apr 4', title: 'Photo 3',  caption: LOREM, img: 'photos/test1/IMG_7459.jpeg', bearing: 310.5, routeFrac: 0.2239 },
-    { id:  4, lng: -111.859558, lat: 36.999753, date: 'Apr 4', title: 'Photo 4',  caption: LOREM, img: 'photos/test1/IMG_7480.jpeg', bearing: 231.4, routeFrac: 0.2053 },
-    { id:  5, lng: -111.871606, lat: 37.013233, date: 'Apr 4', title: 'Photo 5',  caption: LOREM, img: 'photos/test1/IMG_7466.jpeg', bearing: 268.5, routeFrac: 0.2478 },
-    { id:  6, lng: -111.857103, lat: 36.988461, date: 'Apr 5', title: 'Photo 6',  caption: LOREM, img: 'photos/test1/IMG_7495.jpeg', bearing: 305.6, routeFrac: 0.3123 },
-    { id:  7, lng: -111.832633, lat: 36.984425, date: 'Apr 5', title: 'Photo 7',  caption: LOREM, img: 'photos/test1/IMG_7502.jpeg', bearing: 198.1, routeFrac: 0.3705 },
-    { id:  8, lng: -111.740547, lat: 36.955364, date: 'Apr 6', title: 'Photo 8',  caption: LOREM, img: 'photos/test1/IMG_7534.jpeg', bearing:  23.8, routeFrac: 0.6480 },
-    { id:  9, lng: -111.665864, lat: 36.932278, date: 'Apr 6', title: 'Photo 9',  caption: LOREM, img: 'photos/test1/IMG_7581.jpeg', bearing: 307.9, routeFrac: 0.8005 },
-    { id: 10, lng: -111.664694, lat: 36.931631, date: 'Apr 6', title: 'Photo 10', caption: LOREM, img: 'photos/test1/IMG_7586.jpeg', bearing: 340.1, routeFrac: 0.8005 },
-    { id: 11, lng: -111.664703, lat: 36.931622, date: 'Apr 6', title: 'Photo 11', caption: LOREM, img: 'photos/test1/IMG_7587.jpeg', bearing:  62.1, routeFrac: 0.8005 },
-    { id: 12, lng: -111.587272, lat: 36.865428, date: 'Apr 7', title: 'Lees Ferry', caption: LOREM, img: 'photos/test1/IMG_7613.jpeg', bearing: 214.2, routeFrac: 1.0000 },
-  ];
+  let photos = [];
+
+  const PERSON_COLORS = {
+    gary:   '#e8a020',
+    lauren: '#2bb5a0',
+    maggie: '#b55ad0',
+    jon:    '#4a9fd0',
+  };
+  function personColor(person) {
+    return PERSON_COLORS[person.toLowerCase()] ?? '#d85a30';
+  }
+
+  function parseSortKey(date, time) {
+    const monthMap = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    let val = 0;
+    if (date) {
+      const parts = date.trim().split(/\s+/);
+      val += (monthMap[parts[0]] ?? 0) * 31 * 24 * 60 + (parseInt(parts[1]) || 0) * 24 * 60;
+    }
+    if (time) {
+      const m = time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (m) {
+        let h = parseInt(m[1]), mn = parseInt(m[2]);
+        if (m[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+        if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
+        val += h * 60 + mn;
+      }
+    }
+    return val;
+  }
+
+  // loadPhotos reads from window.TRIP_DATA, generated by: node build.js
+  // Add a new person by adding their photos/trip/{name}/captions.json and re-running build.js.
+  function loadPhotos() {
+    const all = [];
+    let id = 1;
+    const data = window.TRIP_DATA ?? {};
+    for (const person of Object.keys(data).sort()) {
+      const personLabel = person[0].toUpperCase() + person.slice(1);
+      const groups = data[person] ?? [];
+      for (const group of groups) {
+        const caption = group.caption ?? '';
+        const title   = group.title ?? caption.split(' - ')[0] ?? '';
+        const date    = group.date  ?? '';
+        // support both new { photos: [{file,lat,lng,...}] } and legacy { photo: string|string[] }
+        let entries;
+        if (Array.isArray(group.photos)) {
+          entries = group.photos;
+        } else {
+          const files = Array.isArray(group.photo) ? group.photo : (group.photo ? [group.photo] : []);
+          entries = files.map(f => ({ file: f }));
+        }
+        for (const ph of entries) {
+          const frac = ph.routeFrac ?? null;
+          const time = ph.time ?? group.time ?? (frac !== null ? formatHour(hourAtFrac(frac)) : '');
+          const photoDate = ph.date ?? date;
+          all.push({
+            id: id++,
+            person: personLabel,
+            color: personColor(person),
+            lng: ph.lng ?? 0,
+            lat: ph.lat ?? 0,
+            date: photoDate,
+            time,
+            title,
+            caption,
+            img: `photos/trip/${person}/${ph.file}`,
+            bearing: ph.bearing ?? 0,
+            routeFrac: frac ?? 0,
+            sortKey: parseSortKey(photoDate, time),
+          });
+        }
+      }
+    }
+    all.sort((a, b) => a.sortKey - b.sortKey);
+    all.forEach((p, i) => p.id = i + 1);
+    return all;
+  }
 
   // ============================================================
   // MAP SETUP
@@ -400,25 +649,21 @@
       paint: { 'line-color': '#d85a30', 'line-width': 3 }
     });
 
-    markers = photos.map(photo => {
+    photos = loadPhotos();
+    loadSavedViewpoints();
+
+    markers = photos.map((photo, i) => {
       const el = document.createElement('div');
       el.className = 'photo-marker';
       el.textContent = photo.id;
-
-      const popup = new maplibregl.Popup({ offset: 20, closeButton: false })
-        .setHTML(`
-          <div class="photo-popup">
-            <img src="${photo.img}" alt="${photo.title}" />
-            <div class="pop-meta">${photo.title} · ${photo.date}</div>
-          </div>
-        `);
+      el.style.background   = photo.color;
+      el.style.borderColor  = 'white';
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([photo.lng, photo.lat])
-        .setPopup(popup)
         .addTo(map);
 
-      el.addEventListener('click', () => stepTo(photos.indexOf(photo), true));
+      el.addEventListener('click', () => stepTo(i, true));
       return marker;
     });
 
@@ -429,6 +674,12 @@
   // ELEVATION CHART
   // ============================================================
   const CHART_PAD = { top: 18, right: 20, bottom: 28, left: 48 };
+
+  // Precomputed constants — elevationProfile is static
+  const _profileEles = elevationProfile.map(p => p[1]);
+  const ELEV_MIN   = Math.min(..._profileEles);
+  const ELEV_MAX   = Math.max(..._profileEles);
+  const ELEV_RANGE = ELEV_MAX - ELEV_MIN;
 
   function elevationAtFrac(frac) {
     for (let i = 1; i < elevationProfile.length; i++) {
@@ -464,21 +715,21 @@
   // Map hour of day → rgba components for background tint
   function timeToRGBA(h) {
     const stops = [
-      [0,    [8,  12, 45,  0.95]],  // deep night
-      [6.0,  [30, 50, 120, 0.80]],  // pre-dawn blue
-      [7.0,  [50, 90, 160, 0.55]],  // dawn blue
-      [8.5,  [70, 120,190, 0.40]],  // morning blue
-      [10.0, [110,160,210, 0.28]],  // brightening blue
-      [11.0, [180,200,220, 0.18]],  // hazy transition
-      [12.0, [255,230,150, 0.22]],  // peak sun warm
-      [13.5, [255,225,130, 0.28]],  // peak sun bright
-      [15.0, [255,215,120, 0.26]],  // mid-afternoon
-      [16.0, [200,190,220, 0.22]],  // cooling starts
-      [17.0, [120,130,200, 0.38]],  // cool blue evening
-      [18.0, [70, 80, 170, 0.55]],  // deepening blue
-      [19.0, [40, 45, 120, 0.72]],  // dusk blue-purple
-      [20.5, [12, 15, 50,  0.90]],  // night
-      [24.0, [8,  12, 45,  0.95]],  // deep night
+      [0,    [8,  12, 45,  0.95]],
+      [6.0,  [30, 50, 120, 0.80]],
+      [7.0,  [50, 90, 160, 0.55]],
+      [8.5,  [70, 120,190, 0.40]],
+      [10.0, [110,160,210, 0.28]],
+      [11.0, [180,200,220, 0.18]],
+      [12.0, [255,230,150, 0.22]],
+      [13.5, [255,225,130, 0.28]],
+      [15.0, [255,215,120, 0.26]],
+      [16.0, [200,190,220, 0.22]],
+      [17.0, [120,130,200, 0.38]],
+      [18.0, [70, 80, 170, 0.55]],
+      [19.0, [40, 45, 120, 0.72]],
+      [20.5, [12, 15, 50,  0.90]],
+      [24.0, [8,  12, 45,  0.95]],
     ];
     for (let i = 1; i < stops.length; i++) {
       if (h <= stops[i][0]) {
@@ -496,6 +747,13 @@
     return stops[stops.length-1][1];
   }
 
+  function skyColorsAtHour(h) {
+    const toHex = (r,g,b) => '#' + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('');
+    const [sr,sg,sb] = timeToRGBA(h);
+    const [hr,hg,hb] = timeToRGBA(Math.max(0, h - 1.5)); // horizon slightly warmer (dawn/dusk glow)
+    return { sky: toHex(sr,sg,sb), horizon: toHex(hr,hg,hb), fog: toHex(hr,hg,hb) };
+  }
+
   function formatHour(h) {
     const hr = Math.floor(h), mn = Math.round((h - hr) * 60);
     const ampm = hr >= 12 ? 'PM' : 'AM';
@@ -503,33 +761,26 @@
     return `${hr12}:${String(mn).padStart(2,'0')} ${ampm}`;
   }
 
-  function drawElevationChart(activeIdx) {
-    const canvas = document.getElementById('elevation-canvas');
-    const strip  = document.getElementById('elevation-strip');
-    const W = strip.clientWidth, H = strip.clientHeight;
-    canvas.width  = W * devicePixelRatio;
-    canvas.height = H * devicePixelRatio;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
+  // ── Offscreen cache for the static chart layers (everything except photo squares) ──
+  let chartCache = null; // { offscreen, W, H, xS, yS, photoPos }
 
-    const ctx = canvas.getContext('2d');
-    ctx.scale(devicePixelRatio, devicePixelRatio);
-
+  function buildChartCache(W, H) {
     const P = CHART_PAD;
-    const eles = elevationProfile.map(p => p[1]);
-    const minE = Math.min(...eles), maxE = Math.max(...eles), rangeE = maxE - minE;
-    const xS = f  => P.left + f  * (W - P.left - P.right);
-    const yS = e  => H - P.bottom - ((e - minE) / rangeE) * (H - P.top - P.bottom);
+    const xS = f => P.left + f * (W - P.left - P.right);
+    const yS = e => H - P.bottom - ((e - ELEV_MIN) / ELEV_RANGE) * (H - P.top - P.bottom);
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width  = W * devicePixelRatio;
+    offscreen.height = H * devicePixelRatio;
+    const ctx = offscreen.getContext('2d');
+    ctx.scale(devicePixelRatio, devicePixelRatio);
 
     // 1. Time-of-day background gradient strips
     for (let i = 0; i < elevationProfile.length - 1; i++) {
       const [f0,,h0] = elevationProfile[i];
       const [f1,,h1] = elevationProfile[i+1];
       const x0 = xS(f0), x1 = xS(f1);
-      const isOvernight = h1 < h0 - 2;
-
-      if (isOvernight) {
-        // Dark band representing the overnight camp
+      if (h1 < h0 - 2) {
         ctx.fillStyle = 'rgba(4,4,18,0.96)';
         ctx.fillRect(x0, P.top, x1 - x0 + 1, H - P.top - P.bottom);
       } else {
@@ -544,8 +795,7 @@
     }
 
     // Camp markers at overnight transitions
-    const camps = [0.3308, 0.6653];
-    camps.forEach(cf => {
+    [0.3308, 0.6653].forEach(cf => {
       const cx = xS(cf);
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
       ctx.fillRect(cx - 0.5, P.top, 1, H - P.top - P.bottom);
@@ -584,11 +834,11 @@
     ctx.fillStyle = 'rgba(255,255,255,0.28)';
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'right';
-    const ftMin = Math.round(minE * 3.28084 / 100) * 100;
-    const ftMax = Math.round(maxE * 3.28084 / 100) * 100;
+    const ftMin = Math.round(ELEV_MIN * 3.28084 / 100) * 100;
+    const ftMax = Math.round(ELEV_MAX * 3.28084 / 100) * 100;
     for (let ft = ftMin; ft <= ftMax; ft += 500) {
       const m = ft / 3.28084;
-      if (m < minE || m > maxE) continue;
+      if (m < ELEV_MIN || m > ELEV_MAX) continue;
       const y = yS(m);
       ctx.fillText(ft.toLocaleString() + ' ft', P.left - 6, y + 3.5);
       ctx.beginPath();
@@ -599,15 +849,42 @@
       ctx.stroke();
     }
 
-    // 6. Photo squares
+    // Precompute photo pixel positions at this canvas size
+    const photoPos = photos.map(p => ({
+      x: xS(p.routeFrac),
+      y: yS(elevationAtFrac(p.routeFrac))
+    }));
+
+    chartCache = { offscreen, W, H, xS, yS, photoPos };
+  }
+
+  function drawElevationChart(activeIdx) {
+    const canvas = document.getElementById('elevation-canvas');
+    const strip  = document.getElementById('elevation-strip');
+    const W = strip.clientWidth, H = strip.clientHeight;
+
+    if (!chartCache || chartCache.W !== W || chartCache.H !== H) {
+      buildChartCache(W, H);
+    }
+
+    canvas.width  = W * devicePixelRatio;
+    canvas.height = H * devicePixelRatio;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(chartCache.offscreen, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+
+    // Photo squares — only dynamic layer
+    const { photoPos } = chartCache;
     const SQ = 9;
     photos.forEach((photo, i) => {
-      const x = xS(photo.routeFrac);
-      const y = yS(elevationAtFrac(photo.routeFrac));
+      const { x, y } = photoPos[i];
       const isActive = i === activeIdx;
       const s = isActive ? SQ + 3 : SQ;
-      ctx.fillStyle   = isActive ? '#ffffff' : '#d85a30';
-      ctx.strokeStyle = isActive ? '#d85a30' : 'rgba(255,255,255,0.5)';
+      ctx.fillStyle   = isActive ? '#ffffff' : photo.color;
+      ctx.strokeStyle = isActive ? photo.color : 'rgba(255,255,255,0.5)';
       ctx.lineWidth   = isActive ? 2 : 1.5;
       ctx.beginPath();
       ctx.rect(x - s/2, y - s/2, s, s);
@@ -616,34 +893,41 @@
     });
   }
 
-  // ── Hover: cursor line + tooltip ──
+  // ── Hover: cursor line + tooltip (rAF-throttled) ──
   (function() {
     const canvas  = document.getElementById('elevation-canvas');
     const strip   = document.getElementById('elevation-strip');
     const cursor  = document.getElementById('chart-cursor');
     const tooltip = document.getElementById('chart-tooltip');
+    let rafPending = false;
+    let pendingEvent = null;
 
     canvas.addEventListener('mousemove', e => {
-      const W = strip.clientWidth, H = strip.clientHeight;
-      const P = CHART_PAD;
-      const chartW = W - P.left - P.right;
-      const rect = strip.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const frac = Math.max(0, Math.min(1, (mx - P.left) / chartW));
+      pendingEvent = e;
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => {
+        rafPending = false;
+        const ev = pendingEvent;
+        const W = strip.clientWidth;
+        const P = CHART_PAD;
+        const chartW = W - P.left - P.right;
+        const rect = strip.getBoundingClientRect();
+        const mx   = ev.clientX - rect.left;
+        const frac = Math.max(0, Math.min(1, (mx - P.left) / chartW));
 
-      const ele  = elevationAtFrac(frac);
-      const hour = hourAtFrac(frac);
-      const day  = dayAtFrac(frac);
-      const eleFt = Math.round(ele * 3.28084).toLocaleString();
+        cursor.style.left    = mx + 'px';
+        cursor.style.display = 'block';
 
-      cursor.style.left    = mx + 'px';
-      cursor.style.display = 'block';
-
-      tooltip.innerHTML = `<span class="tt-time">${formatHour(hour)}</span> · Day ${day}<br><span class="tt-ele">${eleFt} ft</span>`;
-      const tipW = 130;
-      tooltip.style.left    = (mx + 12 + tipW > W ? mx - tipW - 6 : mx + 12) + 'px';
-      tooltip.style.display = 'block';
+        const ele  = elevationAtFrac(frac);
+        const hour = hourAtFrac(frac);
+        const day  = dayAtFrac(frac);
+        const eleFt = Math.round(ele * 3.28084).toLocaleString();
+        const tipW = 130;
+        tooltip.innerHTML  = `<span class="tt-time">${formatHour(hour)}</span> · Day ${day}<br><span class="tt-ele">${eleFt} ft</span>`;
+        tooltip.style.left = (mx + 12 + tipW > W ? mx - tipW - 6 : mx + 12) + 'px';
+        tooltip.style.display = 'block';
+      });
     });
 
     canvas.addEventListener('mouseleave', () => {
@@ -651,26 +935,84 @@
       tooltip.style.display = 'none';
     });
 
-    // Click to navigate to nearest photo
+    // Click to navigate to nearest photo — uses cached pixel positions
     canvas.addEventListener('click', e => {
-      const W = strip.clientWidth, H = strip.clientHeight;
-      const P = CHART_PAD;
-      const eles  = elevationProfile.map(p => p[1]);
-      const minE  = Math.min(...eles), maxE = Math.max(...eles), rangeE = maxE - minE;
-      const xS = f  => P.left + f  * (W - P.left - P.right);
-      const yS = em => H - P.bottom - ((em - minE) / rangeE) * (H - P.top - P.bottom);
+      if (!chartCache) return;
       const rect = strip.getBoundingClientRect();
       const mx = e.clientX - rect.left, my = e.clientY - rect.top;
       const HIT = 14;
       for (let i = 0; i < photos.length; i++) {
-        const px = xS(photos[i].routeFrac);
-        const py = yS(elevationAtFrac(photos[i].routeFrac));
-        if (Math.abs(mx - px) < HIT && Math.abs(my - py) < HIT) { stepTo(i, true); return; }
+        const { x, y } = chartCache.photoPos[i];
+        if (Math.abs(mx - x) < HIT && Math.abs(my - y) < HIT) { stepTo(i, true); return; }
       }
     });
   })();
 
-  window.addEventListener('resize', () => drawElevationChart(currentIdx >= 0 ? currentIdx : undefined));
+  window.addEventListener('resize', () => {
+    chartCache = null; // invalidate on resize
+    drawElevationChart(currentIdx >= 0 ? currentIdx : undefined);
+  });
+
+  // ============================================================
+  // PER-PHOTO VIEWPOINT — persisted in localStorage
+  // Captures: center (lng/lat), zoom, pitch, bearing
+  // ============================================================
+  const VIEWPOINT_KEY = 'paria-viewpoints';
+
+  function loadSavedViewpoints() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(VIEWPOINT_KEY) || '{}');
+      photos.forEach(p => {
+        if (saved[p.id] !== undefined) p.viewpoint = saved[p.id];
+      });
+    } catch (e) {}
+  }
+
+  function persistViewpoints() {
+    const out = {};
+    photos.forEach(p => { if (p.viewpoint !== undefined) out[p.id] = p.viewpoint; });
+    localStorage.setItem(VIEWPOINT_KEY, JSON.stringify(out));
+  }
+
+  function saveViewpoint() {
+    if (currentIdx < 0) return;
+    const c = map.getCenter();
+    photos[currentIdx].viewpoint = {
+      lng:     +c.lng.toFixed(6),
+      lat:     +c.lat.toFixed(6),
+      zoom:    +map.getZoom().toFixed(2),
+      pitch:   +map.getPitch().toFixed(1),
+      bearing: +map.getBearing().toFixed(1),
+    };
+    persistViewpoints();
+    updateViewpointUI(currentIdx);
+  }
+
+  function clearViewpoint() {
+    if (currentIdx < 0) return;
+    delete photos[currentIdx].viewpoint;
+    persistViewpoints();
+    updateViewpointUI(currentIdx);
+  }
+
+  function updateViewpointUI(idx) {
+    const section  = document.getElementById('rp-bearing');
+    const val      = document.getElementById('bearing-val');
+    const clearBtn = document.getElementById('bearing-clear');
+    if (idx < 0) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    const p = photos[idx];
+    if (p.viewpoint !== undefined) {
+      const vp = p.viewpoint;
+      val.textContent = `${vp.bearing.toFixed(1)}° · z${vp.zoom.toFixed(1)} · p${vp.pitch.toFixed(0)}°`;
+      val.className = 'bearing-val saved';
+      clearBtn.style.display = '';
+    } else {
+      val.textContent = 'auto';
+      val.className = 'bearing-val';
+      clearBtn.style.display = 'none';
+    }
+  }
 
   // ============================================================
   // CAMERA NAVIGATION
@@ -692,23 +1034,47 @@
     if (idx < 0 || idx >= photos.length) return;
 
     if (currentIdx >= 0) {
-      markers[currentIdx].getElement().classList.remove('active');
-      markers[currentIdx].getPopup().remove();
+      const prevEl = markers[currentIdx].getElement();
+      prevEl.classList.remove('active');
+      prevEl.style.background  = photos[currentIdx].color;
+      prevEl.style.color       = 'white';
+      prevEl.style.borderColor = 'white';
     }
 
     currentIdx = idx;
     const p = photos[idx];
     const next = photos[Math.min(idx + 1, photos.length - 1)];
-    const bearing = bearingBetween([p.lng, p.lat], [next.lng, next.lat]);
+    const dur = fromMarkerClick ? 1400 : 2200;
 
-    map.flyTo({
-      center: [p.lng, p.lat], zoom: 13.5, pitch: 65, bearing,
-      duration: fromMarkerClick ? 1400 : 2200, essential: true
+    const skyC = skyColorsAtHour(hourAtFrac(p.routeFrac));
+    map.setSky({
+      'sky-color': skyC.sky,
+      'sky-horizon-blend': 0.6,
+      'horizon-color': skyC.horizon,
+      'horizon-fog-blend': 0.8,
+      'fog-color': skyC.fog,
+      'fog-ground-blend': 0.3
     });
+    if (p.viewpoint) {
+      const vp = p.viewpoint;
+      map.flyTo({
+        center: [vp.lng, vp.lat], zoom: vp.zoom, pitch: vp.pitch, bearing: vp.bearing,
+        duration: dur, essential: true
+      });
+    } else {
+      const bearing = bearingBetween([p.lng, p.lat], [next.lng, next.lat]);
+      map.flyTo({
+        center: [p.lng, p.lat], zoom: 13.5, pitch: 65, bearing,
+        duration: dur, essential: true
+      });
+    }
 
     map.once('moveend', () => {
-      markers[currentIdx].getElement().classList.add('active');
-      markers[currentIdx].togglePopup();
+      const activeEl = markers[currentIdx].getElement();
+      activeEl.classList.add('active');
+      activeEl.style.background  = '#fff';
+      activeEl.style.color       = photos[currentIdx].color;
+      activeEl.style.borderColor = photos[currentIdx].color;
     });
 
     // Update right panel
@@ -718,7 +1084,9 @@
     img.className = 'visible';
     placeholder.style.display = 'none';
     document.getElementById('rp-title').textContent = p.title;
-    document.getElementById('rp-date').textContent = p.date;
+    document.getElementById('rp-person').innerHTML =
+      `<span class="person-dot" style="background:${p.color}"></span>${p.person}`;
+    document.getElementById('rp-date').textContent = [p.date, p.time].filter(Boolean).join(' · ');
     document.getElementById('rp-caption').textContent = p.caption;
 
     document.getElementById('btn-prev').disabled = idx === 0;
@@ -726,13 +1094,13 @@
     document.getElementById('btn-next').textContent = idx === photos.length - 1 ? 'Done' : 'Next →';
     document.getElementById('progress').textContent = `${idx + 1} of ${photos.length}`;
 
+    updateViewpointUI(idx);
     drawElevationChart(idx);
   }
 
   function resetView() {
     if (currentIdx >= 0) {
       markers[currentIdx].getElement().classList.remove('active');
-      markers[currentIdx].getPopup().remove();
     }
     currentIdx = -1;
 
@@ -741,13 +1109,15 @@
     img.src = '';
     document.getElementById('rp-placeholder').style.display = '';
     document.getElementById('rp-title').textContent = '';
+    document.getElementById('rp-person').innerHTML = '';
     document.getElementById('rp-date').textContent = '';
     document.getElementById('rp-caption').textContent = '';
     document.getElementById('btn-prev').disabled = true;
     document.getElementById('btn-next').disabled = false;
     document.getElementById('btn-next').textContent = 'Next →';
-    document.getElementById('progress').textContent = '— of 12';
+    document.getElementById('progress').textContent = `— of ${photos.length}`;
 
+    updateViewpointUI(-1);
     map.flyTo({ ...initialView, duration: 2000 });
     drawElevationChart();
   }
@@ -797,15 +1167,51 @@
   let satelliteOn = true;
   function setSatelliteButtonState(on) {
     const btn = document.getElementById('btn-satellite');
-    btn.style.background = on ? '#d85a30' : '';
-    btn.style.color = on ? 'white' : '';
-    btn.style.borderColor = on ? '#d85a30' : '';
+    btn.classList.toggle('active', on);
   }
   function toggleSatellite() {
     satelliteOn = !satelliteOn;
     map.setLayoutProperty('satellite-layer', 'visibility', satelliteOn ? 'visible' : 'none');
     setSatelliteButtonState(satelliteOn);
   }
+
+  // ============================================================
+  // MAP HAMBURGER MENU
+  // ============================================================
+  function toggleMapMenu() {
+    document.getElementById('map-menu-dropdown').classList.toggle('open');
+  }
+  function closeMapMenu() {
+    document.getElementById('map-menu-dropdown').classList.remove('open');
+  }
+  document.addEventListener('click', e => {
+    const menu = document.getElementById('map-menu');
+    if (!menu.contains(e.target)) closeMapMenu();
+  });
+
+  // ============================================================
+  // LIGHTBOX
+  // ============================================================
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  document.getElementById('rp-img').addEventListener('click', function() {
+    if (this.classList.contains('visible')) openLightbox(this.src);
+  });
 </script>
 </body>
 </html>

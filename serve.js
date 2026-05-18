@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// launch with `node build.js && node serve.js --host 0.0.0.0
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');

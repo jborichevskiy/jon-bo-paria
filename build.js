@@ -127,7 +127,7 @@ for (const person of persons) {
     // Normalise to array of {file, ...overrides}
     const rawEntries = Array.isArray(group.photos)
       ? group.photos.map(p => typeof p === 'string' ? { file: p } : p)
-      : (Array.isArray(group.photo) ? group.photo : (group.photo ? [group.photo] : [])).map(f => ({ file: f }));
+      : (Array.isArray(group.photo) ? group.photo : (group.photo ? [group.photo] : [])).map(f => ({ file: f, extra: group.extra }));
 
     let groupDate = group.date ?? '';
 
@@ -144,6 +144,7 @@ for (const person of persons) {
       const time = ph.time ?? group.time ?? dt.time ?? '';
 
       const entry = { file: ph.file, time };
+      if (ph.extra === true || ph.extra === 'true') entry.extra = true;
       if (dt.date && dt.date !== groupDate) entry.date = dt.date;
       if (lat  != null) entry.lat      = +lat.toFixed(6);
       if (lng  != null) entry.lng      = +lng.toFixed(6);

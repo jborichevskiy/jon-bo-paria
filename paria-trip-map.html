@@ -32,6 +32,12 @@
       border-bottom: 1px solid #252525;
       display: flex;
       align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .map-header-left {
+      display: flex;
+      align-items: baseline;
       gap: 12px;
     }
     .map-header h1 {
@@ -374,13 +380,33 @@
     }
     #map-menu-dropdown button:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
     #map-menu-dropdown button.active { color: #d85a30; }
+    .menu-checkbox {
+      display: flex; align-items: center; gap: 6px;
+      color: rgba(255,255,255,0.6); font-size: 12px;
+      padding: 4px 10px; cursor: pointer;
+    }
+    .menu-checkbox input { cursor: pointer; }
+    .menu-checkbox:hover { color: rgba(255,255,255,0.9); }
 
     .person-dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
 
 
-/* ── DEBUG PANEL ── */
+/* ── EXTRA TOGGLE ── */
+    #extra-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      cursor: pointer;
+    }
+    #extra-toggle:hover { color: rgba(255,255,255,0.8); }
+    #extra-toggle input { cursor: pointer; }
+
+    /* ── DEBUG PANEL ── */
     #debug-panel {
       display: none;
       position: absolute;
@@ -405,8 +431,14 @@
 <body>
 
 <div class="map-header">
-  <h1>Paria Canyon</h1>
-  <p>White House TH → Lees Ferry · Apr 4–8, 2026</p>
+  <div class="map-header-left">
+    <h1>Paria Canyon</h1>
+    <p>White House TH → Lees Ferry · Apr 4–8, 2026</p>
+  </div>
+  <label id="extra-toggle">
+    <input type="checkbox" id="chk-extra" onchange="toggleExtra()">
+    <span>Show pre- and post-adventure</span>
+  </label>
 </div>
 
 <div class="top-row">
@@ -451,7 +483,7 @@
   </div>
   <div class="rp-footer">
     <div class="rp-nav">
-      <button onclick="stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
+      <button onclick="console.log('prev clicked, currentIdx=', currentIdx, 'photos len=', photos.length); stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
       <button onclick="stepTo(currentIdx + 1)" id="btn-next" class="btn-primary">Next →</button>
     </div>
     <div class="rp-progress" id="progress">— of 6</div>
@@ -572,6 +604,7 @@
             bearing: ph.bearing ?? 0,
             routeFrac: frac ?? 0,
             sortKey: parseSortKey(photoDate, time),
+            extra: ph.extra ?? false,
           });
         }
       }
@@ -579,6 +612,13 @@
     all.sort((a, b) => a.sortKey - b.sortKey);
     all.forEach((p, i) => p.id = i + 1);
     return all;
+  }
+
+  let showExtra = false;
+  function getFilteredPhotos() {
+    const all = loadPhotos();
+    if (showExtra) return all;
+    return all.filter(p => !p.extra);
   }
 
   // ============================================================
@@ -642,23 +682,9 @@
       paint: { 'line-color': '#d85a30', 'line-width': 3 }
     });
 
-    photos = loadPhotos();
+    photos = getFilteredPhotos();
     loadSavedViewpoints();
-
-    markers = photos.map((photo, i) => {
-      const el = document.createElement('div');
-      el.className = 'photo-marker';
-      el.textContent = photo.id;
-      el.style.background   = photo.color;
-      el.style.borderColor  = 'white';
-
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([photo.lng, photo.lat])
-        .addTo(map);
-
-      el.addEventListener('click', () => stepTo(i, true));
-      return marker;
-    });
+    rebuildMarkers();
 
     drawElevationChart();
   });
@@ -997,6 +1023,7 @@
     const section  = document.getElementById('rp-bearing');
     const val      = document.getElementById('bearing-val');
     const clearBtn = document.getElementById('bearing-clear');
+    if (!section || !val || !clearBtn) return;
     if (idx < 0) { section.style.display = 'none'; return; }
     section.style.display = '';
     const p = photos[idx];
@@ -1018,6 +1045,24 @@
   let currentIdx = -1;
   let markers = [];
 
+  function rebuildMarkers() {
+    markers.forEach(m => m.remove());
+    markers = photos.map((photo, i) => {
+      const el = document.createElement('div');
+      el.className = 'photo-marker';
+      el.textContent = photo.id;
+      el.style.background   = photo.color;
+      el.style.borderColor  = 'white';
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([photo.lng, photo.lat])
+        .addTo(map);
+
+      el.addEventListener('click', () => stepTo(i, true));
+      return marker;
+    });
+  }
+
   function bearingBetween(a, b) {
     const toRad = d => d * Math.PI / 180;
     const toDeg = r => r * 180 / Math.PI;
@@ -1029,14 +1074,18 @@
   }
 
   function stepTo(idx, fromMarkerClick = false) {
+    console.log('stepTo: idx=', idx, 'photos.length=', photos.length);
     if (idx < 0 || idx >= photos.length) return;
+    if (!markers || idx >= markers.length) return;
 
-    if (currentIdx >= 0) {
+    if (currentIdx >= 0 && currentIdx < markers.length) {
       const prevEl = markers[currentIdx].getElement();
-      prevEl.classList.remove('active');
-      prevEl.style.background  = photos[currentIdx].color;
-      prevEl.style.color       = 'white';
-      prevEl.style.borderColor = 'white';
+      if (prevEl) {
+        prevEl.classList.remove('active');
+        prevEl.style.background  = photos[currentIdx].color;
+        prevEl.style.color       = 'white';
+        prevEl.style.borderColor = 'white';
+      }
     }
 
     currentIdx = idx;
@@ -1103,6 +1152,7 @@
     document.getElementById('btn-next').disabled = idx === photos.length - 1;
     document.getElementById('btn-next').textContent = idx === photos.length - 1 ? 'Done' : 'Next →';
     document.getElementById('progress').textContent = `${idx + 1} of ${photos.length}`;
+    console.log('stepTo: buttons updated, prev disabled=', document.getElementById('btn-prev').disabled);
 
     updateViewpointUI(idx);
     drawElevationChart(idx);
@@ -1181,6 +1231,27 @@
     satelliteOn = !satelliteOn;
     map.setLayoutProperty('satellite-layer', 'visibility', satelliteOn ? 'visible' : 'none');
     setSatelliteButtonState(satelliteOn);
+  }
+  function toggleExtra() {
+    const prevImg = document.getElementById('rp-img').src;
+    console.log('toggleExtra: prevImg=', prevImg);
+    const wasViewing = currentIdx >= 0;
+    showExtra = document.getElementById('chk-extra').checked;
+    photos = getFilteredPhotos();
+    console.log('toggleExtra: photos.length=', photos.length);
+    currentIdx = -1;  // reset so stepTo handles active state cleanly
+    chartCache = null;  // force chart rebuild for new photos
+    rebuildMarkers();
+    drawElevationChart();
+    let newIdx = 0;
+    if (prevImg) {
+      const match = photos.findIndex(p => p.img && prevImg.endsWith(p.img));
+      console.log('toggleExtra: match index=', match);
+      if (match >= 0) newIdx = match;
+    }
+    console.log('toggleExtra: calling stepTo(', newIdx, ')');
+    stepTo(newIdx, false);
+    console.log('toggleExtra: after stepTo, currentIdx=', currentIdx);
   }
 
   // ============================================================

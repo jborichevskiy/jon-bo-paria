@@ -148,7 +148,8 @@
       flex-direction: column;
       gap: 8px;
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.3s ease;
+      will-change: opacity;
     }
     .rp-bottom.visible { opacity: 1; }
 
@@ -174,7 +175,8 @@
       justify-content: center;
       cursor: zoom-in;
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.3s ease;
+      will-change: opacity;
     }
     .rp-photo.visible { opacity: 1; }
     .rp-photo img {
@@ -333,19 +335,19 @@
 
     .rp-meta { flex-shrink: 0; }
     .rp-meta .byline {
-      font-size: 14px;
+      font-size: 1rem;
       font-weight: 600;
       color: #ddd8d2;
       display: flex;
       align-items: center;
       gap: 6px;
     }
-
     .rp-caption {
-      font-size: 12px;
+      font-size: 1.1rem;
       color: #888;
       line-height: 1.6;
       padding-bottom: 12px;
+      max-width: 640px;
     }
 
     .rp-nav {
@@ -1431,10 +1433,19 @@
     const img     = document.getElementById('rp-img');
     const ph      = document.getElementById('rp-placeholder');
 
+    // Start loading new image immediately (parallel with fade-out)
+    const preloader = new Image();
+    preloader.src = p.img;
+    const imageReady = new Promise(resolve => {
+      if (preloader.complete && preloader.naturalWidth) { resolve(); }
+      else { preloader.onload = resolve; preloader.onerror = resolve; }
+    });
+
     const showContent = () => {
-      img.onload = () => { img.style.display = ''; photo.classList.add('visible'); ph.style.display = 'none'; };
-      img.src = p.img;
-      if (img.complete && img.naturalWidth) { img.style.display = ''; photo.classList.add('visible'); ph.style.display = 'none'; }
+      img.src = p.img; // already in browser cache
+      img.style.display = '';
+      photo.classList.add('visible');
+      ph.style.display = 'none';
       document.getElementById('rp-byline').innerHTML =
         `<span class="person-dot" style="background:${p.color}"></span>${p.person}, ${[p.date, p.time].filter(Boolean).join(' · ')}`;
       document.getElementById('rp-caption').textContent = p.caption;
@@ -1444,9 +1455,12 @@
     if (photo.classList.contains('visible')) {
       photo.classList.remove('visible');
       bottom.classList.remove('visible');
-      photo.addEventListener('transitionend', showContent, { once: true });
+      const transitionDone = new Promise(resolve =>
+        photo.addEventListener('transitionend', resolve, { once: true })
+      );
+      Promise.all([transitionDone, imageReady]).then(showContent);
     } else {
-      showContent();
+      imageReady.then(showContent);
     }
 
     document.getElementById('btn-prev').disabled = idx === 0;
@@ -1459,6 +1473,13 @@
 
     updateViewpointUI(idx);
     drawElevationChart(idx);
+
+    // Preload adjacent photos so Prev/Next feel instant
+    [idx - 1, idx + 1].forEach(i => {
+      if (i >= 0 && i < photos.length && photos[i].img) {
+        new Image().src = photos[i].img;
+      }
+    });
   }
 
   function resetView() {

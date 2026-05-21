@@ -333,6 +333,25 @@
       flex-shrink: 0;
     }
 
+    .view-first-btn {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .view-first-btn:hover {
+      background: #d35400;
+    }
+    .view-first-btn.hidden {
+      display: none;
+    }
+
     .rp-meta { flex-shrink: 0; }
     .rp-meta .byline {
       font-size: 1rem;
@@ -515,16 +534,51 @@
 
 /* ── EXTRA TOGGLE ── */
     #extra-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: rgba(255,255,255,0.5);
+      background: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 4px 10px;
+      color: rgba(255,255,255,0.2);
       font-size: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      cursor: pointer;
+      cursor: not-allowed;
+      white-space: nowrap;
+      position: relative;
     }
-    #extra-toggle:hover { color: rgba(255,255,255,0.8); }
-    #extra-toggle input { cursor: pointer; }
+    #extra-toggle .coming-soon-tip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 7px);
+      right: 0;
+      background: #1e1e1e;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 5px;
+      padding: 5px 9px;
+      font-size: 11px;
+      color: #aaa;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+    #extra-toggle .coming-soon-tip::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      right: 14px;
+      border: 5px solid transparent;
+      border-bottom-color: rgba(255,255,255,0.12);
+    }
+    #extra-toggle .coming-soon-tip::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      right: 15px;
+      border: 4px solid transparent;
+      border-bottom-color: #1e1e1e;
+      z-index: 1;
+    }
+    #extra-toggle:hover .coming-soon-tip { display: block; }
 
     /* ── PEOPLE FILTER ── */
     .people-filter {
@@ -585,10 +639,10 @@
       <option value="all">All</option>
     </select>
   </div>
-  <label id="extra-toggle">
-    <input type="checkbox" id="chk-extra" onchange="toggleExtra()">
-    <span>Show pre- and post-adventure</span>
-  </label>
+  <button id="extra-toggle" disabled>
+    Show pre- and post-adventure
+    <span class="coming-soon-tip">✨ coming soon</span>
+  </button>
   <button class="home-btn" onclick="goHome()" title="Go to overview">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -661,6 +715,7 @@
         <div class="overview-help-item"><span class="overview-help-icon">◉</span> Click pins to jump to photos</div>
         <div class="overview-help-item"><span class="overview-help-icon">⊕</span> Click photos to expand</div>
       </div>
+      <button class="view-first-btn" id="view-first-btn" onclick="stepTo(0)">View first photo</button>
     </div>
   </div>
   <div class="rp-bottom">
@@ -835,7 +890,7 @@
     return all;
   }
 
-  let showExtra = false;
+  let showExtra = true;
   let selectedPeople = null; // null = all, otherwise array of lowercase person names
   let allPeople = [];
 
@@ -887,12 +942,13 @@
   // ============================================================
   // MAP SETUP
   // ============================================================
+  const firstLoadView = { center: [-111.699371, 36.814782], zoom: 9.36, pitch: 60.0, bearing: -15.0 };
   const initialView = { center: [-111.741, 36.973], zoom: 10, pitch: 60, bearing: -15 };
 
   const map = new maplibregl.Map({
     container: 'map',
     style: `https://api.maptiler.com/maps/topo-v2/style.json?key=${MAPTILER_KEY}`,
-    ...initialView,
+    ...firstLoadView,
     maxPitch: 85
   });
 
@@ -1336,32 +1392,21 @@
 
   function rebuildMarkers() {
     markers.forEach(m => m.remove());
-    const allPhotos = loadPhotos();
-    const filteredSet = new Set(photos.map(p => p.id));
-    markers = allPhotos.map((photo) => {
+    // Build markers 1-to-1 with the filtered `photos` array so markers[i] === photos[i].
+    // This ensures stepTo(idx) always addresses the correct marker.
+    markers = photos.map((photo, i) => {
       const el = document.createElement('div');
       el.className = 'photo-marker';
       el.textContent = photo.id;
-      const isFiltered = filteredSet.has(photo.id);
-      if (!isFiltered) {
-        el.style.background   = '#444';
-        el.style.borderColor  = '#666';
-        el.style.color        = '#666';
-        el.style.opacity      = '0.5';
-      } else {
-        el.style.background   = photo.color;
-        el.style.borderColor  = 'white';
-        el.style.color        = 'white';
-      }
+      el.style.background   = photo.color;
+      el.style.borderColor  = 'white';
+      el.style.color        = 'white';
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([photo.lng, photo.lat])
         .addTo(map);
 
-      el.addEventListener('click', () => {
-        const newIdx = photos.findIndex(p => p.id === photo.id);
-        if (newIdx >= 0) stepTo(newIdx, true);
-      });
+      el.addEventListener('click', () => stepTo(i, true));
       return marker;
     });
   }
@@ -1380,6 +1425,10 @@
     console.log('stepTo: idx=', idx, 'photos.length=', photos.length);
     if (idx < 0 || idx >= photos.length) return;
     if (!markers || idx >= markers.length) return;
+
+    // Hide the "view first photo" button once we start viewing photos
+    const viewFirstBtn = document.getElementById('view-first-btn');
+    if (viewFirstBtn) viewFirstBtn.classList.add('hidden');
 
     if (currentIdx >= 0 && currentIdx < markers.length) {
       const prevEl = markers[currentIdx].getElement();
@@ -1419,12 +1468,16 @@
       });
     }
 
+    const capturedIdx = idx;
     map.once('moveend', () => {
-      const activeEl = markers[currentIdx].getElement();
+      // Use capturedIdx so rapid clicks don't corrupt marker state
+      if (capturedIdx >= markers.length) return;
+      const activeEl = markers[capturedIdx]?.getElement();
+      if (!activeEl) return;
       activeEl.classList.add('active');
       activeEl.style.background  = '#fff';
-      activeEl.style.color       = photos[currentIdx].color;
-      activeEl.style.borderColor = photos[currentIdx].color;
+      activeEl.style.color       = photos[capturedIdx].color;
+      activeEl.style.borderColor = photos[capturedIdx].color;
     });
 
     // Update right panel
@@ -1569,25 +1622,29 @@
     setSatelliteButtonState(satelliteOn);
   }
   function toggleExtra() {
+    const btn = document.getElementById('extra-toggle');
+    showExtra = !showExtra;
+    btn.classList.toggle('active', showExtra);
+
     const prevImg = document.getElementById('rp-img').src;
-    console.log('toggleExtra: prevImg=', prevImg);
-    const wasViewing = currentIdx >= 0;
-    showExtra = document.getElementById('chk-extra').checked;
+    const prevId = currentIdx >= 0 ? photos[currentIdx]?.id : null;
+
     photos = getFilteredPhotos();
-    console.log('toggleExtra: photos.length=', photos.length);
-    currentIdx = -1;  // reset so stepTo handles active state cleanly
-    chartCache = null;  // force chart rebuild for new photos
+    currentIdx = -1;  // reset — rebuildMarkers re-indexes
+    chartCache = null;
     rebuildMarkers();
     drawElevationChart();
+
+    // Try to stay on the same photo; fall back to index 0
     let newIdx = 0;
-    if (prevImg) {
+    if (prevId != null) {
+      const match = photos.findIndex(p => p.id === prevId);
+      if (match >= 0) newIdx = match;
+    } else if (prevImg) {
       const match = photos.findIndex(p => p.img && prevImg.endsWith(p.img));
-      console.log('toggleExtra: match index=', match);
       if (match >= 0) newIdx = match;
     }
-    console.log('toggleExtra: calling stepTo(', newIdx, ')');
     stepTo(newIdx, false);
-    console.log('toggleExtra: after stepTo, currentIdx=', currentIdx);
   }
 
   // ============================================================

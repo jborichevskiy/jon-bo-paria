@@ -2,3 +2,5 @@ photos/
 plans/
 *.gpx
 trip-data.js
+dist/
+.wrangler/

@@ -52,6 +52,26 @@
       font-size: 12px;
       color: #555;
     }
+    .home-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .home-btn:hover {
+      color: #aaa;
+      background: rgba(255,255,255,0.06);
+    }
+    .home-btn svg {
+      width: 20px;
+      height: 20px;
+    }
 
     /* ── LEFT COLUMN: map only ── */
     .map-col {
@@ -116,6 +136,9 @@
       min-height: 0;
       padding: 14px 14px 0;
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     .rp-bottom {
@@ -211,6 +234,101 @@
       line-height: 2;
       letter-spacing: 0.03em;
       pointer-events: none;
+    }
+
+    /* ── OVERVIEW CARD ── */
+    .overview-card {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 32px;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .overview-card.visible { display: flex; }
+    .overview-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #f0ede8;
+      margin: 0 0 8px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .overview-dates {
+      font-size: 16px;
+      color: #777;
+      margin: 0 0 32px;
+    }
+    .overview-stats {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    .overview-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .overview-stat-val {
+      font-size: 24px;
+      font-weight: 600;
+      color: #e8a020;
+    }
+    .overview-stat-label {
+      font-size: 12px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 4px;
+    }
+    .overview-people {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .overview-person {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
+      color: #ccc;
+    }
+    .overview-person-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .overview-help {
+      text-align: left;
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 18px 20px;
+      max-width: 300px;
+    }
+    .overview-help-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .overview-help-item {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .overview-help-item:last-child { margin-bottom: 0; }
+    .overview-help-icon {
+      color: #d85a30;
+      flex-shrink: 0;
     }
 
     .rp-meta { flex-shrink: 0; }
@@ -469,6 +587,12 @@
     <input type="checkbox" id="chk-extra" onchange="toggleExtra()">
     <span>Show pre- and post-adventure</span>
   </label>
+  <button class="home-btn" onclick="goHome()" title="Go to overview">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+  </button>
 </div>
 
 <div class="top-row">
@@ -503,6 +627,38 @@
     <div class="rp-photo">
       <img id="rp-img" src="" alt="" />
       <div class="rp-placeholder" id="rp-placeholder">Click Next →<br>to begin</div>
+    </div>
+    <div class="overview-card" id="overview-card">
+      <h2 class="overview-title">Paria Canyon 2026</h2>
+      <p class="overview-dates">April 4–8, 2026</p>
+      <div class="overview-stats">
+        <div class="overview-stat">
+          <span class="overview-stat-val" id="overview-distance">—</span>
+          <span class="overview-stat-label">Miles</span>
+        </div>
+        <div class="overview-stat">
+          <span class="overview-stat-val" id="overview-elevation">—</span>
+          <span class="overview-stat-label">ft Elev</span>
+        </div>
+        <div class="overview-stat">
+          <span class="overview-stat-val" id="overview-photos">—</span>
+          <span class="overview-stat-label">Moments</span>
+        </div>
+      </div>
+      <div class="overview-people">
+        <div class="overview-person"><span class="overview-person-dot" style="background:#e8a020"></span>Gary</div>
+        <div class="overview-person"><span class="overview-person-dot" style="background:#2bb5a0"></span>Lauren</div>
+        <div class="overview-person"><span class="overview-person-dot" style="background:#b55ad0"></span>Maggie</div>
+        <div class="overview-person"><span class="overview-person-dot" style="background:#4a9fd0"></span>Jon</div>
+      </div>
+      <div class="overview-help">
+        <div class="overview-help-title">How to use</div>
+        <div class="overview-help-item"><span class="overview-help-icon">☰</span> People filter in top menu</div>
+        <div class="overview-help-item"><span class="overview-help-icon">☀</span> Pre/post photos top-right</div>
+        <div class="overview-help-item"><span class="overview-help-icon">▁</span> Elevation map at bottom</div>
+        <div class="overview-help-item"><span class="overview-help-icon">◉</span> Click pins to jump to photos</div>
+        <div class="overview-help-item"><span class="overview-help-icon">⊕</span> Click photos to expand</div>
+      </div>
     </div>
   </div>
   <div class="rp-bottom">
@@ -554,6 +710,39 @@
   // local_hour in MDT; drops at overnight transitions (~0.3308 and ~0.6653)
   // ============================================================
   const elevationProfile = [[0.0,1307.5,11.35],[0.007,1304.9,11.44],[0.0188,1302.8,11.59],[0.028,1304.2,11.68],[0.037,1322.9,11.77],[0.0405,1293.5,11.86],[0.0492,1292.3,11.98],[0.0573,1287.6,12.09],[0.0668,1297.8,12.19],[0.0714,1301.1,12.31],[0.0795,1281.6,12.44],[0.0888,1278.6,12.53],[0.0943,1279.2,12.6],[0.1044,1279.1,12.72],[0.1129,1279.0,12.8],[0.1194,1276.0,12.94],[0.1291,1273.3,13.02],[0.1332,1306.6,13.11],[0.1377,1282.2,13.21],[0.1447,1306.6,13.34],[0.1514,1295.6,13.95],[0.1588,1310.3,14.09],[0.1641,1285.7,14.19],[0.1715,1325.5,14.35],[0.1756,1285.8,14.47],[0.1789,1292.3,14.57],[0.1847,1288.4,14.71],[0.1959,1336.9,14.82],[0.2027,1282.2,15.02],[0.205,1315.5,15.16],[0.2053,1267.5,15.31],[0.2113,1322.9,15.63],[0.2153,1303.6,15.75],[0.2239,1395.7,16.05],[0.2414,1361.6,16.16],[0.2468,1335.6,16.28],[0.2478,1332.7,16.37],[0.2533,1341.9,17.04],[0.2705,1346.6,17.13],[0.2768,1304.9,17.23],[0.2823,1313.3,17.32],[0.2866,1282.4,17.47],[0.2891,1262.6,17.87],[0.2927,1274.5,17.92],[0.2995,1271.4,18.09],[0.3067,1297.4,18.43],[0.3123,1251.4,18.51],[0.3184,1247.7,18.59],[0.3218,1249.6,18.68],[0.3278,1292.7,18.76],[0.3308,1244.3,19.4],[0.3348,1263.8,9.27],[0.3394,1234.6,9.37],[0.3441,1251.0,9.5],[0.3464,1246.0,9.59],[0.352,1279.6,9.7],[0.3591,1248.5,9.81],[0.3646,1233.8,9.92],[0.3705,1223.4,10.05],[0.3723,1222.7,10.26],[0.3739,1246.1,10.4],[0.3742,1239.0,10.5],[0.3825,1218.7,10.59],[0.3889,1225.4,10.66],[0.3966,1217.8,10.75],[0.4021,1221.5,10.89],[0.4076,1233.2,10.98],[0.4119,1264.9,11.1],[0.4162,1204.5,11.21],[0.4232,1220.4,11.3],[0.4302,1217.8,11.52],[0.4359,1201.2,12.19],[0.4452,1212.5,12.42],[0.4495,1197.2,12.52],[0.4559,1199.3,12.63],[0.4606,1216.0,12.72],[0.4671,1200.4,12.82],[0.4723,1200.8,12.94],[0.4785,1219.6,13.14],[0.4832,1185.5,13.24],[0.4873,1196.6,13.34],[0.4928,1182.0,13.45],[0.4961,1188.0,13.59],[0.5009,1181.5,13.73],[0.5105,1180.0,13.84],[0.5206,1203.9,14.2],[0.5286,1163.2,14.62],[0.5349,1164.0,14.75],[0.5426,1163.9,14.86],[0.5495,1171.0,14.96],[0.558,1163.3,15.04],[0.5618,1161.0,15.19],[0.5687,1168.4,15.3],[0.5731,1158.5,15.48],[0.5832,1154.1,15.6],[0.5922,1152.0,15.72],[0.5928,1159.4,16.12],[0.5982,1155.4,16.21],[0.6047,1148.0,16.3],[0.6118,1147.7,16.43],[0.6178,1149.1,16.53],[0.624,1145.4,16.66],[0.6306,1147.2,16.86],[0.6344,1147.3,16.97],[0.6424,1137.8,17.08],[0.648,1133.0,17.22],[0.6527,1128.3,17.34],[0.6588,1129.3,17.43],[0.6653,1124.4,17.58],[0.6703,1120.1,9.47],[0.6792,1117.4,9.57],[0.6864,1113.5,9.64],[0.6948,1119.1,9.73],[0.7026,1107.9,9.86],[0.7081,1104.2,9.92],[0.7153,1102.1,9.98],[0.7229,1094.2,10.08],[0.7287,1092.8,10.81],[0.736,1099.2,10.91],[0.7419,1083.9,10.98],[0.7469,1081.6,11.08],[0.7539,1082.1,11.16],[0.759,1087.2,11.25],[0.7652,1092.6,11.38],[0.7718,1090.3,11.45],[0.7794,1085.2,11.55],[0.7866,1055.5,11.75],[0.7931,1037.3,11.91],[0.8005,1023.5,12.05],[0.8044,1021.6,12.14],[0.8118,1023.4,12.68],[0.8225,1015.2,12.76],[0.829,1012.1,12.86],[0.8369,1009.9,12.95],[0.8456,1004.7,13.09],[0.8546,999.0,13.59],[0.8618,997.4,13.68],[0.8696,993.8,13.77],[0.8753,990.9,13.82],[0.888,990.7,13.92],[0.8954,986.0,13.98],[0.9052,978.4,14.08],[0.9137,975.3,14.26],[0.9219,974.8,14.32],[0.9288,968.7,14.44],[0.9361,971.1,14.65],[0.945,971.0,14.77],[0.9525,969.3,14.9],[0.959,969.0,14.96],[0.9687,963.0,15.03],[0.979,961.6,15.19],[0.991,955.6,15.96],[0.9948,955.3,16.04],[1.0,954.6,16.08]];
+
+  // ============================================================
+  // ROUTE STATS
+  // ============================================================
+  function haversinekm(a, b) {
+    const R = 6371;
+    const dLat = (b[1] - a[1]) * Math.PI / 180;
+    const dLon = (b[0] - a[0]) * Math.PI / 180;
+    const lat1 = a[1] * Math.PI / 180, lat2 = b[1] * Math.PI / 180;
+    const sinDLat = Math.sin(dLat/2), sinDLon = Math.sin(dLon/2);
+    const h = sinDLat*sinDLat + Math.cos(lat1)*Math.cos(lat2)*sinDLon*sinDLon;
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+  }
+
+  function computeRouteStats() {
+    const coords = route.geometry.coordinates;
+    let totalKm = 0;
+    for (let i = 1; i < coords.length; i++) {
+      totalKm += haversinekm(coords[i-1], coords[i]);
+    }
+    const totalMiles = totalKm * 0.621371;
+    let minEle = Infinity, maxEle = -Infinity;
+    for (const pt of elevationProfile) {
+      const eleM = pt[1];
+      if (eleM < minEle) minEle = eleM;
+      if (eleM > maxEle) maxEle = eleM;
+    }
+    const minFt = Math.round(minEle * 3.28084);
+    const maxFt = Math.round(maxEle * 3.28084);
+    return { miles: totalMiles.toFixed(1), elevation: `${maxFt}–${minFt} ft` };
+  }
+
+  const routeStats = computeRouteStats();
 
   // ============================================================
   // PHOTOS — loaded dynamically from photos/trip/{person}/captions.json
@@ -1264,7 +1453,9 @@
     document.getElementById('btn-next').disabled = idx === photos.length - 1;
     document.getElementById('btn-next').textContent = idx === photos.length - 1 ? 'Done' : 'Next →';
     document.getElementById('progress').textContent = `${idx + 1} of ${photos.length}`;
-    console.log('stepTo: buttons updated, prev disabled=', document.getElementById('btn-prev').disabled);
+
+    document.getElementById('overview-card').classList.remove('visible');
+    document.getElementById('rp-placeholder').style.display = 'none';
 
     updateViewpointUI(idx);
     drawElevationChart(idx);
@@ -1280,6 +1471,7 @@
     document.querySelector('.rp-bottom').classList.remove('visible');
     document.getElementById('rp-img').src = '';
     document.getElementById('rp-placeholder').style.display = '';
+    document.getElementById('overview-card').classList.add('visible');
     document.getElementById('rp-byline').innerHTML = '';
     document.getElementById('rp-caption').textContent = '';
     document.getElementById('btn-prev').disabled = true;
@@ -1290,6 +1482,17 @@
     updateViewpointUI(-1);
     map.flyTo({ ...initialView, duration: 2000 });
     drawElevationChart();
+  }
+
+  function goHome() {
+    selectedPeople = null;
+    document.getElementById('people-filter-select').value = 'all';
+    const prevImg = document.getElementById('rp-img').src;
+    photos = getFilteredPhotos();
+    chartCache = null;
+    rebuildMarkers();
+    drawElevationChart();
+    resetView();
   }
 
   function toggleTerrain() {
@@ -1402,6 +1605,16 @@
     const src = document.getElementById('rp-img').src;
     if (this.classList.contains('visible') && src) openLightbox(src);
   });
+
+  // Initialize overview card
+  (function initOverview() {
+    const allPhotos = loadPhotos();
+    document.getElementById('overview-distance').textContent = routeStats.miles;
+    document.getElementById('overview-elevation').textContent = routeStats.elevation;
+    document.getElementById('overview-photos').textContent = allPhotos.length;
+    document.getElementById('overview-card').classList.add('visible');
+    document.getElementById('rp-placeholder').style.display = 'none';
+  })();
 </script>
 </body>
 </html>

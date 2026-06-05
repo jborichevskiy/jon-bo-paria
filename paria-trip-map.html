@@ -5,11 +5,28 @@
   <title>Paria Canyon — Trip Map</title>
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    /* ── DESIGN TOKENS ── */
+    :root {
+      --font: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --fs-sm: 0.8125rem;  /* 13px — labels, tooltips, buttons, small meta */
+      --fs-md: 1rem;       /* 16px — body text, captions, section headings */
+      --fs-lg: 2rem;       /* 32px — large display titles & stat numbers */
+    }
+
     * { box-sizing: border-box; }
+    /* Form controls don't inherit font-family by default — opt them all in. */
+    button, select, input, textarea, optgroup { font-family: var(--font); }
+    /* MapLibre's built-in controls (scale text, attribution, popups) render with their own font. */
+    .maplibregl-ctrl, .maplibregl-ctrl button,
+    .maplibregl-ctrl-scale, .maplibregl-popup,
+    .maplibregl-ctrl-attrib { font-family: var(--font); }
     body {
       margin: 0; padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font);
       background: #111;
       display: flex;
       flex-direction: column;
@@ -47,14 +64,14 @@
     }
     .map-header h1 {
       margin: 0;
-      font-size: 17px;
+      font-size: var(--fs-md);
       font-weight: 700;
       color: #f0ede8;
       letter-spacing: 0.01em;
     }
     .map-header p {
       margin: 0;
-      font-size: 12px;
+      font-size: var(--fs-sm);
       color: #555;
     }
     .home-btn {
@@ -92,6 +109,14 @@
       background: #0e0e0e;
       border-top: 1px solid #222;
       position: relative;
+      overflow: hidden;
+      transition: height 0.25s ease;
+    }
+    /* Collapsed by default — the two panels fill the full height below the header.
+       (A toggle control can flip this class later.) */
+    #elevation-strip.collapsed {
+      height: 0;
+      border-top: none;
     }
     #elevation-canvas {
       display: block;
@@ -112,8 +137,8 @@
       top: 8px;
       background: rgba(0,0,0,0.82);
       color: #ccc;
-      font-size: 12px;
-      font-family: -apple-system, "Segoe UI", sans-serif;
+      font-size: var(--fs-sm);
+      font-family: var(--font);
       line-height: 1.65;
       padding: 5px 9px;
       border-radius: 4px;
@@ -127,13 +152,22 @@
 
     /* ── RIGHT PANEL ── */
     .right-panel {
-      flex: 0 0 50%;
+      flex: 0 0 60%;
       min-width: 280px;
       background: #161616;
       border-left: 1px solid #252525;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+    }
+
+    /* Wraps the photo + caption so the expanded caption can overlay the photo */
+    .rp-main {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .rp-photo-wrap {
@@ -151,12 +185,24 @@
       padding: 10px 14px 0;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       opacity: 0;
       transition: opacity 0.3s ease;
       will-change: opacity;
     }
     .rp-bottom.visible { opacity: 1; }
+    /* Expanded: overlay the full caption over the photo (photo keeps its proportions behind) */
+    .rp-bottom.expanded {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      padding: 14px;
+      background: rgba(12,12,12,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 5;
+    }
 
     .rp-footer {
       flex-shrink: 0;
@@ -171,6 +217,7 @@
 
 
     .rp-photo {
+      position: relative;
       background: #161616;
       border-radius: 5px;
       overflow: hidden;
@@ -178,7 +225,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: zoom-in;
+      cursor: pointer;
       opacity: 0;
       transition: opacity 0.3s ease;
       will-change: opacity;
@@ -194,6 +241,26 @@
       display: block;
     }
     .rp-photo:has(video) { cursor: default; }
+
+    /* Hover overlay on the small photo — photographer + date/time (date/time dimmed) */
+    .rp-photo-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 22px 14px 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: var(--fs-sm);
+      color: #fff;
+      background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0));
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+    .rp-photo:hover .rp-photo-overlay { opacity: 1; }
+    .rp-photo-overlay .author { font-weight: 600; }
+    .rp-photo-overlay .meta { opacity: 0.6; font-weight: 400; }
+    .rp-photo-overlay:empty { display: none; }
 
     /* ── LIGHTBOX ── */
     #lightbox {
@@ -238,7 +305,7 @@
     #lightbox-close:hover { background: rgba(255,255,255,0.22); }
     .rp-placeholder {
       color: #333;
-      font-size: 13px;
+      font-size: var(--fs-sm);
       text-align: center;
       line-height: 2;
       letter-spacing: 0.03em;
@@ -258,7 +325,7 @@
     }
     .overview-card.visible { display: flex; }
     .overview-title {
-      font-size: 32px;
+      font-size: var(--fs-lg);
       font-weight: 700;
       color: #f0ede8;
       margin: 0 0 8px;
@@ -266,7 +333,7 @@
       letter-spacing: -0.01em;
     }
     .overview-dates {
-      font-size: 16px;
+      font-size: var(--fs-md);
       color: #777;
       margin: 0 0 32px;
     }
@@ -281,12 +348,12 @@
       align-items: center;
     }
     .overview-stat-val {
-      font-size: 24px;
+      font-size: var(--fs-lg);
       font-weight: 600;
       color: #e8a020;
     }
     .overview-stat-label {
-      font-size: 12px;
+      font-size: var(--fs-sm);
       color: #555;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -303,7 +370,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 15px;
+      font-size: var(--fs-md);
       color: #ccc;
     }
     .overview-person-dot {
@@ -319,7 +386,7 @@
       max-width: 300px;
     }
     .overview-help-title {
-      font-size: 13px;
+      font-size: var(--fs-sm);
       font-weight: 600;
       color: #666;
       margin-bottom: 12px;
@@ -329,7 +396,7 @@
     .overview-help-item {
       display: flex;
       gap: 10px;
-      font-size: 14px;
+      font-size: var(--fs-md);
       color: #888;
       margin-bottom: 8px;
       line-height: 1.4;
@@ -343,7 +410,7 @@
     .view-first-btn {
       margin-top: 20px;
       padding: 12px 20px;
-      font-size: 15px;
+      font-size: var(--fs-md);
       font-weight: 600;
       background: #e67e22;
       color: #fff;
@@ -359,40 +426,62 @@
       display: none;
     }
 
-    .rp-meta { flex-shrink: 0; }
-    .rp-meta .byline {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #ddd8d2;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
     .rp-caption {
-      font-size: 1.1rem;
+      font-size: var(--fs-md);
       color: #888;
       line-height: 1.6;
-      padding-bottom: 12px;
-      max-width: 640px;
+      text-align: left;
+      /* cap line length (~80 chars; monospace makes ch reliable), centered as a block */
+      width: 100%;
+      max-width: 80ch;
+      margin: 0 auto;
+      padding: 8px 0;
+      /* clamped to 3 lines until expanded */
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .rp-bottom.expanded .rp-caption {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+      padding-bottom: 4px;
     }
     .rp-caption .caption-credit {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      margin-right: 8px;
       font-weight: 600;
-      color: #ddd8d2;
+      color: #c8c3bd;
       white-space: nowrap;
     }
+    .rp-caption-toggle {
+      align-self: center;
+      background: none;
+      border: none;
+      color: #d85a30;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 0 12px;
+      display: none;
+    }
+    .rp-caption-toggle.visible { display: block; }
+    .rp-caption-toggle:hover { color: #e67e22; }
 
     .rp-nav {
       display: flex;
       gap: 8px;
+      /* match the caption column width */
+      width: 100%;
+      max-width: 80ch;
+      margin: 0 auto;
     }
     .rp-nav button {
       flex: 1;
       padding: 9px 6px;
-      font-size: 13px;
+      font-size: var(--fs-sm);
       font-weight: 600;
       border: 1px solid #2e2e2e;
       background: #1e1e1e;
@@ -422,7 +511,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 12px;
+      font-size: var(--fs-sm);
     }
     .bearing-label {
       color: #444;
@@ -439,7 +528,7 @@
     }
     .bearing-btn {
       padding: 3px 8px;
-      font-size: 12px;
+      font-size: var(--fs-sm);
       border: 1px solid #2a2a2a;
       background: #1a1a1a;
       color: #777;
@@ -468,7 +557,7 @@
       justify-content: center;
       color: white;
       font-weight: 600;
-      font-size: 13px;
+      font-size: var(--fs-sm);
       transition: transform 0.15s;
     }
     .photo-marker:hover { transform: scale(1.2); }
@@ -524,8 +613,8 @@
       background: transparent;
       border: none;
       color: rgba(255,255,255,0.6);
-      font-size: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: var(--fs-sm);
+      font-family: var(--font);
       text-align: left;
       padding: 6px 10px;
       border-radius: 3px;
@@ -537,7 +626,7 @@
     #map-menu-dropdown button.active { color: #d85a30; }
     .menu-checkbox {
       display: flex; align-items: center; gap: 6px;
-      color: rgba(255,255,255,0.6); font-size: 12px;
+      color: rgba(255,255,255,0.6); font-size: var(--fs-sm);
       padding: 4px 10px; cursor: pointer;
     }
     .menu-checkbox input { cursor: pointer; }
@@ -556,16 +645,16 @@
     }
     .people-filter label {
       color: rgba(255,255,255,0.3);
-      font-size: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: var(--fs-sm);
+      font-family: var(--font);
     }
     .people-select {
       background: rgba(20,20,20,0.72);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 4px;
       color: rgba(255,255,255,0.2);
-      font-size: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: var(--fs-sm);
+      font-family: var(--font);
       padding: 4px 8px;
       cursor: not-allowed;
       min-width: 90px;
@@ -583,7 +672,7 @@
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 5px;
       padding: 5px 9px;
-      font-size: 11px;
+      font-size: var(--fs-sm);
       color: #aaa;
       white-space: nowrap;
       pointer-events: none;
@@ -616,8 +705,8 @@
       border-radius: 4px;
       padding: 4px 10px;
       color: rgba(255,255,255,0.2);
-      font-size: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: var(--fs-sm);
+      font-family: var(--font);
       cursor: not-allowed;
       white-space: nowrap;
       opacity: 0.5;
@@ -631,8 +720,8 @@
       right: 12px;
       background: rgba(0,0,0,0.78);
       color: #00ff41;
-      font-family: "SF Mono", "Fira Code", monospace;
-      font-size: 11px;
+      font-family: var(--font);
+      font-size: var(--fs-sm);
       line-height: 1.8;
       padding: 10px 14px;
       border-radius: 4px;
@@ -706,10 +795,12 @@
 </div>
 
 <div class="right-panel">
+  <div class="rp-main">
   <div class="rp-photo-wrap">
     <div class="rp-photo">
       <img id="rp-img" src="" alt="" />
       <video id="rp-video" src="" controls playsinline preload="metadata" style="display:none"></video>
+      <div class="rp-photo-overlay" id="rp-photo-overlay"></div>
       <div class="rp-placeholder" id="rp-placeholder">Click Next →<br>to begin</div>
     </div>
     <div class="overview-card" id="overview-card">
@@ -747,11 +838,10 @@
     </div>
   </div>
   <div class="rp-bottom">
-    <div class="rp-meta">
-      <div class="byline" id="rp-byline"></div>
-    </div>
     <div class="rp-caption" id="rp-caption"></div>
+    <button class="rp-caption-toggle" id="rp-caption-toggle" onclick="toggleCaption()">Show more</button>
   </div>
+  </div><!-- /.rp-main -->
   <div class="rp-footer">
     <div class="rp-nav">
       <button onclick="console.log('prev clicked, currentIdx=', currentIdx, 'photos len=', photos.length); stepTo(currentIdx - 1)" id="btn-prev" disabled>← Prev</button>
@@ -763,7 +853,7 @@
 
 </div><!-- /.top-row -->
 
-<div id="elevation-strip">
+<div id="elevation-strip" class="collapsed">
   <canvas id="elevation-canvas"></canvas>
   <div id="chart-cursor"></div>
   <div id="chart-tooltip"></div>
@@ -1162,7 +1252,7 @@
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
       ctx.fillRect(cx - 0.5, P.top, 1, H - P.top - P.bottom);
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.font = '9px -apple-system, sans-serif';
+      ctx.font = '9px "Roboto Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('camp', cx, P.top - 4);
     });
@@ -1194,7 +1284,7 @@
 
     // 5. Y-axis labels
     ctx.fillStyle = 'rgba(255,255,255,0.28)';
-    ctx.font = '10px -apple-system, sans-serif';
+    ctx.font = '10px "Roboto Mono", monospace';
     ctx.textAlign = 'right';
     const ftMin = Math.round(ELEV_MIN * 3.28084 / 100) * 100;
     const ftMax = Math.round(ELEV_MAX * 3.28084 / 100) * 100;
@@ -1537,19 +1627,35 @@
       }
       photo.classList.add('visible');
       ph.style.display = 'none';
-      document.getElementById('rp-byline').innerHTML =
-        `<span class="person-dot" style="background:${p.color}"></span>${p.person}, ${[p.date, p.time].filter(Boolean).join(' · ')}`;
+
+      // Photographer attribution lives on the photo hover overlay; date/time dimmed.
+      const meta = [p.date, p.time].filter(Boolean).join(' · ');
+      document.getElementById('rp-photo-overlay').innerHTML = p.person
+        ? `<span class="person-dot" style="background:${p.color}"></span>` +
+          `<span class="author">${escapeHtml(p.person)}</span>` +
+          (meta ? `<span class="meta">${escapeHtml(meta)}</span>` : '')
+        : '';
+
+      // Caption: always suffixed with the caption author after a hyphen.
       const captionEl = document.getElementById('rp-caption');
-      const captionByDifferent =
-        p.caption && p.captionAuthor && p.captionAuthor !== p.person;
-      if (captionByDifferent) {
-        // Photo and words are by different people — credit the caption author inline.
-        captionEl.innerHTML =
-          `<span class="caption-credit"><span class="person-dot" style="background:${p.captionAuthorColor}"></span>${escapeHtml(p.captionAuthor)}</span>` +
-          escapeHtml(p.caption);
-      } else {
-        captionEl.textContent = p.caption;
-      }
+      const credit = p.captionAuthor || p.person;
+      captionEl.innerHTML = escapeHtml(p.caption) +
+        (p.caption && credit
+          ? ` <span class="caption-credit">— ${escapeHtml(credit)}</span>`
+          : '');
+
+      // Collapse to 3 lines and only reveal the toggle if the caption overflows.
+      bottom.classList.remove('expanded');
+      document.querySelector('.rp-photo-wrap').style.flex = '';
+      const toggle = document.getElementById('rp-caption-toggle');
+      toggle.textContent = 'Show more';
+      toggle.classList.remove('visible');
+      requestAnimationFrame(() => {
+        if (captionEl.scrollHeight - captionEl.clientHeight > 2) {
+          toggle.classList.add('visible');
+        }
+      });
+
       bottom.classList.add('visible');
     };
 
@@ -1598,7 +1704,10 @@
     rpVideo.style.display = 'none';
     document.getElementById('rp-placeholder').style.display = '';
     document.getElementById('overview-card').classList.add('visible');
-    document.getElementById('rp-byline').innerHTML = '';
+    document.getElementById('rp-photo-overlay').innerHTML = '';
+    document.querySelector('.rp-bottom').classList.remove('expanded');
+    document.querySelector('.rp-photo-wrap').style.flex = '';
+    document.getElementById('rp-caption-toggle').classList.remove('visible');
     document.getElementById('rp-caption').textContent = '';
     document.getElementById('btn-prev').disabled = true;
     document.getElementById('btn-next').disabled = false;
@@ -1619,6 +1728,21 @@
     rebuildMarkers();
     drawElevationChart();
     resetView();
+  }
+
+  // Expand/collapse the caption. Expanded overlays the full text over the photo.
+  // Lock the photo wrapper's height so the photo keeps its size/position behind the overlay.
+  function toggleCaption() {
+    const bottom   = document.querySelector('.rp-bottom');
+    const toggle   = document.getElementById('rp-caption-toggle');
+    const photoWrap = document.querySelector('.rp-photo-wrap');
+    const expanded = bottom.classList.toggle('expanded');
+    if (expanded) {
+      photoWrap.style.flex = `0 0 ${photoWrap.offsetHeight}px`;
+    } else {
+      photoWrap.style.flex = '';
+    }
+    toggle.textContent = expanded ? 'Show less' : 'Show more';
   }
 
   function toggleTerrain() {

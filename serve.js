@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// launch with `node build.js && node serve.js --host 0.0.0.0
-// Editor lives at http://localhost:8080/editor.html
+// Launch with `node serve.js`. Reads/writes content.json (the single source of truth).
+// Map:    http://localhost:8080/   (paria-trip-map.html — reads content.json directly)
+// Editor: http://localhost:8080/editor.html
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
@@ -70,7 +71,10 @@ http.createServer((req, res) => {
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); return res.end('Not found'); }
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': MIME[ext] ?? 'application/octet-stream' });
+    const headers = { 'Content-Type': MIME[ext] ?? 'application/octet-stream' };
+    // content.json is the live source of truth — never let the browser serve a stale copy.
+    if (urlPath.endsWith('content.json')) headers['Cache-Control'] = 'no-store';
+    res.writeHead(200, headers);
     res.end(data);
   });
 }).listen(PORT, () => {

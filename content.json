@@ -1,20 +1,16 @@
 {
   "people": {
     "jon": {
-      "name": "Jon",
-      "email": "***"
+      "name": "Jon"
     },
     "gary": {
-      "name": "Gary",
-      "email": "***"
+      "name": "Gary"
     },
     "maggie": {
-      "name": "Maggie",
-      "email": "***"
+      "name": "Maggie"
     },
     "lauren": {
-      "name": "Lauren",
-      "email": null
+      "name": "Lauren"
     }
   },
   "photos": [
@@ -27,7 +23,11 @@
       "caption": "This is Donnie’s America, anything is possible.",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.865622,
+        "lng": -111.589011
+      },
+      "routeFrac": 1,
       "dateCreated": "2026-04-04T13:12:32.000Z",
       "_icloudCaption": true
     },
@@ -40,7 +40,11 @@
       "caption": "Typical gear explosion for Lee’s Ferry, at least we didn’t murder anyone from Arkansas.",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.866014,
+        "lng": -111.591417
+      },
+      "routeFrac": 1,
       "dateCreated": "2026-04-04T14:16:21.000Z",
       "_icloudCaption": true
     },
@@ -53,7 +57,11 @@
       "caption": "We greeted the paria not more than a few hundred yards north of where it meets the White House spring wash. It strikes me that this was the maximum weight of my pack for the trip. My estimate was that I was near or below 30lbs while Lauren and Jon neared 40lbs where I can only guess Maggie was close to the upper 40s",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.078653,
+        "lng": -111.891122
+      },
+      "routeFrac": 0.0071,
       "dateCreated": "2026-04-04T17:25:02.000Z",
       "_icloudCaption": false
     },
@@ -66,7 +74,11 @@
       "caption": "Reflections",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.029717,
+        "lng": -111.870003
+      },
+      "routeFrac": 0.1198,
       "dateCreated": "2026-04-04T19:59:55.000Z",
       "_icloudCaption": false
     },
@@ -75,26 +87,51 @@
       "image": "photos/trip/lauren/IMG_0351.jpeg",
       "originalFilename": "IMG_0351.jpeg",
       "isVideo": false,
-      "photographer": "lauren",
+      "photographer": "jon",
       "caption": "Slot canyon - One of the spectacular things about slot canyons is how different the rock can be, with textures, colors, and shapes—holes, nodules, beds, caves, stripes, red, orange, white, etc. Jon also made the astute point that, unlike with hiking in places like alpine areas where you have more expansive visibility, with slot canyons you never know what's around the corner. Similarly, unlike mountains, slot canyons can look like they aren't much from a normal vantage point above; they're unassuming until you get in. While peaks have an overcoming quality where you conquer them and get to the top, canyons have a more introspective feel of rebirth and journeying from darkness to light. These are ways that moving through canyons can parallel parts of the journey of life.",
       "captionAuthor": "lauren",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.027297,
+        "lng": -111.863769
+      },
+      "routeFrac": 0.1294,
       "dateCreated": "2026-04-04T20:13:22.000Z",
       "_icloudCaption": false
     },
     {
       "id": "279559F5-4AD9-408E-8E90-9E620FA14D6F",
-      "image": "photos/trip/gary/IMG_0237.mov",
+      "image": "photos/trip/gary/IMG_0237.mp4",
       "originalFilename": "IMG_0237.mov",
       "isVideo": true,
       "photographer": "gary",
       "caption": "Light, water, and rock: as my zen master would say when watching the sun set on the beach “just another shitty sunset”",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.0239,
+        "lng": -111.8624
+      },
+      "routeFrac": 0.1383,
       "dateCreated": "2026-04-04T20:28:14.000Z",
       "_icloudCaption": true
+    },
+    {
+      "id": "maggie-IMG_4271",
+      "image": "photos/trip/maggie/IMG_4271.jpeg",
+      "originalFilename": "IMG_4271.jpeg",
+      "isVideo": false,
+      "photographer": "maggie",
+      "caption": "",
+      "captionAuthor": "maggie",
+      "coreTrip": true,
+      "location": {
+        "lat": 37.017022,
+        "lng": -111.862808
+      },
+      "routeFrac": 0.1599,
+      "dateCreated": "2026-04-04T20:52:47.000Z",
+      "_icloudCaption": false
     },
     {
       "id": "9EE147B4-4C03-4074-88BC-FE188075B1CB",
@@ -105,7 +142,11 @@
       "caption": "It’s hard to capture the magic of buckskin but it was worth every ounce of energy to get back in it and feel it.",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.011417,
+        "lng": -111.871514
+      },
+      "routeFrac": 0.2416,
       "dateCreated": "2026-04-05T00:07:58.000Z",
       "_icloudCaption": true
     },
@@ -122,6 +163,7 @@
         "lat": 37.006818,
         "lng": -111.859016
       },
+      "routeFrac": 0.1801,
       "dateCreated": "2026-04-05T00:17:28.000Z",
       "_icloudCaption": false
     },
@@ -134,7 +176,11 @@
       "caption": "First night's camp was on top of this grassy hill. We were in the Narrows that night - deep in the canyon. Though the weather looked clear, we were still strongly urged to camp at elevation to avoid getting washed out by a flash flood. It felt very cozy on top of this mound; high enough to be safe but not high enough to be out of the canyon. Watching the night arrive and the stars come out was a magical, touching experience. ",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.000461,
+        "lng": -111.860672
+      },
+      "routeFrac": 0.2887,
       "dateCreated": "2026-04-05T00:44:54.000Z",
       "_icloudCaption": false
     },
@@ -143,11 +189,15 @@
       "image": "photos/trip/jon/IMG_0415.jpeg",
       "originalFilename": "IMG_0415.jpeg",
       "isVideo": false,
-      "photographer": "jon",
+      "photographer": "lauren",
       "caption": "Men at work.",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 37.000461,
+        "lng": -111.860672
+      },
+      "routeFrac": 0.2887,
       "dateCreated": "2026-04-05T02:11:07.000Z",
       "_icloudCaption": false
     },
@@ -160,7 +210,11 @@
       "caption": "Stars - One of the best parts of each day was at night, being able to relax and bask in being done walking for the day, and look at the stars. We saw Jupiter, Uranus, and the Hubble space telescope. A good reminder that our problems are so small in the scheme of space.",
       "captionAuthor": "lauren",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.999592,
+        "lng": -111.859436
+      },
+      "routeFrac": 0.2904,
       "dateCreated": "2026-04-05T02:49:08.000Z",
       "_icloudCaption": false
     },
@@ -173,7 +227,11 @@
       "caption": "Pocket forests deserve their own map in the narrows",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.986764,
+        "lng": -111.856911
+      },
+      "routeFrac": 0.3241,
       "dateCreated": "2026-04-05T15:46:00.000Z",
       "_icloudCaption": true
     },
@@ -186,7 +244,11 @@
       "caption": "Slot canyon - One of the spectacular things about slot canyons is how different the rock can be, with textures, colors, and shapes—holes, nodules, beds, caves, stripes, red, orange, white, etc. Jon also made the astute point that, unlike with hiking in places like alpine areas where you have more expansive visibility, with slot canyons you never know what's around the corner. Similarly, unlike mountains, slot canyons can look like they aren't much from a normal vantage point above; they're unassuming until you get in. While peaks have an overcoming quality where you conquer them and get to the top, canyons have a more introspective feel of rebirth and journeying from darkness to light. These are ways that moving through canyons can parallel parts of the journey of life.",
       "captionAuthor": "lauren",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.986339,
+        "lng": -111.854264
+      },
+      "routeFrac": 0.3196,
       "dateCreated": "2026-04-05T15:52:35.000Z",
       "_icloudCaption": false
     },
@@ -199,33 +261,59 @@
       "caption": "No human for scale yet one of my favorite views of the whole trip",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.987819,
+        "lng": -111.844025
+      },
+      "routeFrac": 0.3498,
       "dateCreated": "2026-04-05T16:44:29.000Z",
       "_icloudCaption": true
+    },
+    {
+      "id": "421DF3FD-29EA-4FC2-BB90-F4E9208F1295",
+      "image": "photos/trip/maggie/IMG_4358.jpeg",
+      "originalFilename": "IMG_4358.jpeg",
+      "isVideo": false,
+      "photographer": "maggie",
+      "caption": "This was my favorite tree",
+      "captionAuthor": "maggie",
+      "coreTrip": true,
+      "location": null,
+      "routeFrac": null,
+      "dateCreated": "2026-04-05T22:33:29.000Z",
+      "_icloudCaption": false
     },
     {
       "id": "67BADE41-E679-4391-9DEE-81D843AB26DB",
       "image": "photos/trip/gary/IMG_7525.jpeg",
       "originalFilename": "IMG_7525.jpeg",
       "isVideo": false,
-      "photographer": "gary",
+      "photographer": "jon",
       "caption": "Day two was a special feeling.",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.969619,
+        "lng": -111.769317
+      },
+      "routeFrac": 0.5648,
       "dateCreated": "2026-04-06T02:08:09.000Z",
       "_icloudCaption": false
     },
     {
       "id": "A9C00B1B-4DE9-4168-AD65-074E31517A95",
-      "image": "photos/trip/gary/IMG_0359.mov",
+      "image": "photos/trip/gary/IMG_0359.mp4",
       "originalFilename": "IMG_0359.mov",
       "isVideo": true,
       "photographer": "gary",
       "caption": "'Secret tunnel, secret tunnel!'",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.9654,
+        "lng": -111.7565
+      },
+      "routeFrac": 0.5959,
       "dateCreated": "2026-04-06T16:35:59.000Z",
       "_icloudCaption": true
     },
@@ -238,7 +326,11 @@
       "caption": "Petroglyphs - As the night sky is a reminder of the magnitude of space, the canyon nudged us to contemplate time. The walls were a reminder of geologic time on scales of millions of years as the Paria River slowly created the myriad of textures and shapes. The petroglyphs were a reminder of human time on scales of thousands of years as early peoples were drawn to the canyon spiritually and for migration. At the end of our journey, at the canyons confluence with the Colorado River, are ruins of a 1800s ranch where a Mormon outlaw from the Mountain Meadow Massacre hid from authorities while earning a living ferrying people across the Colorado. All of this meditation on time was a reminder that our problems are also small in the scheme of time.",
       "captionAuthor": "lauren",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.955283,
+        "lng": -111.740669
+      },
+      "routeFrac": 0.65,
       "dateCreated": "2026-04-06T18:22:50.000Z",
       "_icloudCaption": false
     },
@@ -251,7 +343,11 @@
       "caption": "When the group has four different maps and none of them quite agree with each other.",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.955203,
+        "lng": -111.740806
+      },
+      "routeFrac": 0.65,
       "dateCreated": "2026-04-06T18:33:17.000Z",
       "_icloudCaption": false
     },
@@ -260,11 +356,15 @@
       "image": "photos/trip/jon/IMG_0378.jpeg",
       "originalFilename": "IMG_0378.jpeg",
       "isVideo": false,
-      "photographer": "jon",
+      "photographer": "gary",
       "caption": "The last spring till we made it back to the car. Although we were schlepping through water nearly the entire time and could filter out of the river if need be, it is a very special thing to put your bottle under a rock and have it fill up with fresh, clean water.",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.952419,
+        "lng": -111.730536
+      },
+      "routeFrac": 0.6721,
       "dateCreated": "2026-04-06T19:21:29.000Z",
       "_icloudCaption": false
     },
@@ -277,7 +377,11 @@
       "caption": "Just men processing deep emotions.",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.952611,
+        "lng": -111.720269
+      },
+      "routeFrac": 0.688,
       "dateCreated": "2026-04-06T19:50:17.000Z",
       "_icloudCaption": false
     },
@@ -290,8 +394,29 @@
       "caption": "The emotion was grumpy and I’ll forever cherish it",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.952683,
+        "lng": -111.720292
+      },
+      "routeFrac": 0.688,
       "dateCreated": "2026-04-06T19:50:21.000Z",
+      "_icloudCaption": false
+    },
+    {
+      "id": "maggie-IMG_4392",
+      "image": "photos/trip/maggie/IMG_4392.jpeg",
+      "originalFilename": "IMG_4392.jpeg",
+      "isVideo": false,
+      "photographer": "maggie",
+      "caption": "And my favorite cacti",
+      "captionAuthor": "maggie",
+      "coreTrip": true,
+      "location": {
+        "lat": 36.948447,
+        "lng": -111.709053
+      },
+      "routeFrac": 0.7092,
+      "dateCreated": "2026-04-06T20:29:13.000Z",
       "_icloudCaption": false
     },
     {
@@ -303,7 +428,11 @@
       "caption": "Blooming cacti - There wasn't too much life early in the slot canyon but by day 4 frogs were croaking, there were small fish in the river, there were more pockets of cottonwoods, and the prickly pear cacti were blooming with fuschia flowers.",
       "captionAuthor": "lauren",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.948622,
+        "lng": -111.709367
+      },
+      "routeFrac": 0.7092,
       "dateCreated": "2026-04-06T20:29:42.000Z",
       "_icloudCaption": false
     },
@@ -312,11 +441,15 @@
       "image": "photos/trip/maggie/IMG_7587.jpeg",
       "originalFilename": "IMG_7587.jpeg",
       "isVideo": false,
-      "photographer": "maggie",
+      "photographer": "jon",
       "caption": "This is one of my favorites haha",
       "captionAuthor": "maggie",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.931622,
+        "lng": -111.664703
+      },
+      "routeFrac": 0.801,
       "dateCreated": "2026-04-07T00:46:51.000Z",
       "_icloudCaption": false
     },
@@ -325,11 +458,15 @@
       "image": "photos/trip/jon/IMG_0423.jpeg",
       "originalFilename": "IMG_0423.jpeg",
       "isVideo": false,
-      "photographer": "jon",
+      "photographer": "gary",
       "caption": "While Gary may have won the award for most falls, I won the First Aid kit use award. The first for a rock that I stepped on that fell and scraped my shin, and the second for my ",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.931586,
+        "lng": -111.664703
+      },
+      "routeFrac": 0.801,
       "dateCreated": "2026-04-07T01:56:01.000Z",
       "_icloudCaption": true
     },
@@ -342,7 +479,11 @@
       "caption": "Night three camp. Taken shortly before rain scattered us into our tents like cats. As the rain was starting, Gary and I jerry-rigged a poor man's system to hang our food from (the second of the trip). Not from bears but from mice and other small critters. It held up admirably even in the inclement weather.",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.931631,
+        "lng": -111.664719
+      },
+      "routeFrac": 0.801,
       "dateCreated": "2026-04-07T02:18:39.000Z",
       "_icloudCaption": false
     },
@@ -351,11 +492,15 @@
       "image": "photos/trip/gary/IMG_7603.jpeg",
       "originalFilename": "IMG_7603.jpeg",
       "isVideo": false,
-      "photographer": "gary",
+      "photographer": "jon",
       "caption": "It was a wide open desert at that point",
       "captionAuthor": "gary",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.874486,
+        "lng": -111.604164
+      },
+      "routeFrac": 0.9699,
       "dateCreated": "2026-04-07T18:16:07.000Z",
       "_icloudCaption": false
     },
@@ -368,7 +513,11 @@
       "caption": "What a hilarious, surprisingly organized, and at times diabolical group of rascals to spend four days wandering along a river with. To more adventures soon.",
       "captionAuthor": "jon",
       "coreTrip": true,
-      "location": null,
+      "location": {
+        "lat": 36.865428,
+        "lng": -111.587264
+      },
+      "routeFrac": 1,
       "dateCreated": "2026-04-07T19:18:38.000Z",
       "_icloudCaption": false
     }

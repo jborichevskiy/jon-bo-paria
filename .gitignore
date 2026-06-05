@@ -1,4 +1,6 @@
 photos/
+output/
+content-backups/
 plans/
 *.gpx
 trip-data.js

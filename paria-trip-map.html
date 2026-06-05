@@ -537,20 +537,33 @@
     }
 
 
-/* ── EXTRA TOGGLE ── */
-    #extra-toggle {
-      background: none;
+    /* ── PEOPLE FILTER ── */
+    .people-filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .people-filter label {
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .people-select {
+      background: rgba(20,20,20,0.72);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 4px;
-      padding: 4px 10px;
       color: rgba(255,255,255,0.2);
       font-size: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 4px 8px;
       cursor: not-allowed;
-      white-space: nowrap;
+      min-width: 90px;
+      opacity: 0.5;
+    }
+    .people-filter {
       position: relative;
     }
-    #extra-toggle .coming-soon-tip {
+    .people-filter-tooltip {
       display: none;
       position: absolute;
       top: calc(100% + 7px);
@@ -566,7 +579,7 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.5);
       z-index: 100;
     }
-    #extra-toggle .coming-soon-tip::after {
+    .people-filter-tooltip::after {
       content: '';
       position: absolute;
       bottom: 100%;
@@ -574,7 +587,7 @@
       border: 5px solid transparent;
       border-bottom-color: rgba(255,255,255,0.12);
     }
-    #extra-toggle .coming-soon-tip::before {
+    .people-filter-tooltip::before {
       content: '';
       position: absolute;
       bottom: 100%;
@@ -583,31 +596,21 @@
       border-bottom-color: #1e1e1e;
       z-index: 1;
     }
-    #extra-toggle:hover .coming-soon-tip { display: block; }
+    .people-filter:hover .people-filter-tooltip { display: block; }
 
-    /* ── PEOPLE FILTER ── */
-    .people-filter {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .people-filter label {
-      color: rgba(255,255,255,0.5);
-      font-size: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    .people-select {
+    /* ── EXTRA TOGGLE (pre/post adventure) ── */
+    #extra-toggle {
       background: rgba(20,20,20,0.72);
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 4px;
-      color: #ccc;
+      padding: 4px 10px;
+      color: rgba(255,255,255,0.2);
       font-size: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      padding: 4px 8px;
-      cursor: pointer;
-      min-width: 90px;
+      cursor: not-allowed;
+      white-space: nowrap;
+      opacity: 0.5;
     }
-    .people-select:hover { border-color: rgba(255,255,255,0.25); }
 
     /* ── DEBUG PANEL ── */
     #debug-panel {
@@ -640,10 +643,15 @@
   </div>
   <div class="map-header-right">
     <div class="people-filter">
+      <button id="extra-toggle" disabled>include pre- &amp; post-adventure</button>
+      <span class="people-filter-tooltip">🏗️ coming soon</span>
+    </div>
+    <div class="people-filter">
       <label>Photos by:</label>
-      <select id="people-filter-select" class="people-select" onchange="togglePeopleFilter()">
+      <select id="people-filter-select" class="people-select" disabled>
         <option value="all">All</option>
       </select>
+      <span class="people-filter-tooltip">🏗️ coming soon</span>
     </div>
     <a class="home-btn" href="https://github.com/jborichevskiy/jon-bo-paria-2026" target="_blank" rel="noopener" title="View on GitHub">
       <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">

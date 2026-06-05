@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Paria Canyon — Trip Map</title>
+  <title>Paria Canyon Traverse, 2026</title>
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -39,6 +39,7 @@
       display: flex;
       flex: 1;
       min-height: 0;
+      position: relative;   /* anchor for the floating overview card */
     }
 
     /* ── FULL-WIDTH HEADER ── */
@@ -151,6 +152,7 @@
     #chart-tooltip .tt-ele  { color: #888; }
 
     /* ── RIGHT PANEL ── */
+    /* Photo views: in-flow split — image panel 60%, map 40%. */
     .right-panel {
       flex: 0 0 60%;
       min-width: 280px;
@@ -159,6 +161,43 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+    }
+
+    /* ── OVERVIEW (title) STATE ──
+       The panel floats as a content-sized card over a full-width map.
+       The map column (flex: 1) reclaims the full width since the panel
+       leaves the flex flow. */
+    .top-row.overview-mode .right-panel {
+      position: absolute;
+      top: 50%;
+      right: 100px;
+      transform: translateY(-50%);
+      flex: none;
+      width: 442px;
+      min-width: 0;
+      height: auto;
+      max-height: calc(100% - 56px);
+      border: 1px solid #2a2a2a;
+      border-left: 1px solid #2a2a2a;
+      border-radius: 12px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+      background: rgba(20,20,20,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 4;
+    }
+    /* In the floating card, only the overview info + buttons show. */
+    .top-row.overview-mode .rp-photo,
+    .top-row.overview-mode .rp-bottom,
+    .top-row.overview-mode .rp-footer { display: none; }
+    .top-row.overview-mode .rp-main { flex: 0 0 auto; }
+    .top-row.overview-mode .rp-photo-wrap {
+      flex: 0 0 auto;
+      padding: 0;
+    }
+    .top-row.overview-mode .overview-card {
+      height: auto;
+      padding: 34px 28px;
     }
 
     /* Wraps the photo + caption so the expanded caption can overlay the photo */
@@ -738,7 +777,7 @@
 
 <div class="map-header">
   <div class="map-header-left">
-    <h1>Paria Canyon</h1>
+    <h1>Paria Canyon Traverse, 2026</h1>
     <p>White House TH → Lees Ferry · Apr 4–8, 2026</p>
   </div>
   <div class="map-header-right">
@@ -1054,7 +1093,7 @@
   // ============================================================
   // MAP SETUP
   // ============================================================
-  const firstLoadView = { center: [-111.699371, 36.814782], zoom: 9.36, pitch: 60.0, bearing: -15.0 };
+  const firstLoadView = { center: [-111.533203, 35.424868], zoom: 3.66, pitch: 37.0, bearing: 12.8 };
   const initialView = { center: [-111.741, 36.973], zoom: 10, pitch: 60, bearing: -15 };
 
   const map = new maplibregl.Map({
@@ -1120,6 +1159,9 @@
     rebuildMarkers();
 
     drawElevationChart();
+
+    // Cinematic intro: hold the zoomed-out world view briefly, then fly into the canyon.
+    setTimeout(() => map.flyTo({ ...initialView, duration: 11000, essential: true }), 800);
   });
 
   // ============================================================
@@ -1321,6 +1363,10 @@
     const canvas = document.getElementById('elevation-canvas');
     const strip  = document.getElementById('elevation-strip');
     const W = strip.clientWidth, H = strip.clientHeight;
+
+    // Strip is collapsed (0×0) until expanded — nothing to draw, and a 0-sized
+    // offscreen canvas would make ctx.drawImage throw. Bail; we redraw on expand.
+    if (W <= 0 || H <= 0) return;
 
     if (!chartCache || chartCache.W !== W || chartCache.H !== H) {
       buildChartCache(W, H);
@@ -1558,6 +1604,10 @@
     const next = photos[Math.min(idx + 1, photos.length - 1)];
     const dur = fromMarkerClick ? 1400 : 2200;
 
+    // Leave overview mode BEFORE flying: the map column resizes from full-width to
+    // 40% and padding clears, so the camera targets the marker within the final size.
+    setOverviewMode(false);
+
     const skyC = skyColorsAtHour(hourAtFrac(p.routeFrac));
     map.setSky({
       'sky-color': skyC.sky,
@@ -1689,11 +1739,32 @@
     });
   }
 
+  // Toggle the title/overview layout (floating card over full-width map) vs the
+  // in-flow photo split. The map column changes width, so resize its canvas
+  // synchronously here — callers rely on the new size being in effect before they
+  // fly the camera (otherwise the target marker lands off-screen).
+  function setOverviewMode(on) {
+    const row = document.querySelector('.top-row');
+    row.classList.toggle('overview-mode', on);
+    map.resize();
+    // In overview mode the card floats over the right of a full-width map; pad the
+    // camera so "center" sits in the middle of the visible area left of the card.
+    if (on) {
+      const rect = document.querySelector('.right-panel').getBoundingClientRect();
+      map.setPadding({ top: 0, right: Math.max(0, window.innerWidth - rect.left), bottom: 0, left: 0 });
+    } else {
+      map.setPadding({ top: 0, right: 0, bottom: 0, left: 0 });
+    }
+  }
+
   function resetView() {
     if (currentIdx >= 0) {
       markers[currentIdx].getElement().classList.remove('active');
     }
     currentIdx = -1;
+    setOverviewMode(true);
+    const viewFirstBtn = document.getElementById('view-first-btn');
+    if (viewFirstBtn) viewFirstBtn.classList.remove('hidden');
 
     document.querySelector('.rp-photo').classList.remove('visible');
     document.querySelector('.rp-bottom').classList.remove('visible');
@@ -1870,6 +1941,7 @@
     document.getElementById('overview-photos').textContent = allPhotos.length;
     document.getElementById('overview-card').classList.add('visible');
     document.getElementById('rp-placeholder').style.display = 'none';
+    setOverviewMode(true);
   });
 </script>
 </body>

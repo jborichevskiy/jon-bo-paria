@@ -22,7 +22,7 @@
       "photographer": "gary",
       "caption": "This is Donnie’s America, anything is possible.",
       "captionAuthor": "gary",
-      "coreTrip": true,
+      "coreTrip": false,
       "location": {
         "lat": 36.865622,
         "lng": -111.589011
@@ -39,7 +39,7 @@
       "photographer": "gary",
       "caption": "Typical gear explosion for Lee’s Ferry, at least we didn’t murder anyone from Arkansas.",
       "captionAuthor": "gary",
-      "coreTrip": true,
+      "coreTrip": false,
       "location": {
         "lat": 36.866014,
         "lng": -111.591417
@@ -156,16 +156,17 @@
       "originalFilename": "IMG_0414.jpeg",
       "isVideo": false,
       "photographer": "lauren",
-      "caption": "Slot canyon - One of the spectacular things about slot canyons is how different the rock can be, with textures, colors, and shapes—holes, nodules, beds, caves, stripes, red, orange, white, etc. Jon also made the astute point that, unlike with hiking in places like alpine areas where you have more expansive visibility, with slot canyons you never know what's around the corner. Similarly, unlike mountains, slot canyons can look like they aren't much from a normal vantage point above; they're unassuming until you get in. While peaks have an overcoming quality where you conquer them and get to the top, canyons have a more introspective feel of rebirth and journeying from darkness to light. These are ways that moving through canyons can parallel parts of the journey of life.",
+      "caption": "Slot canyon - One of the spectacular things about slot canyons is how different the rock can be, with textures, colors, and shapes—holes, nodules, beds, caves, stripes, red, orange, white, etc. Jon also made the astute point that, unlike with hiking in places like alpine areas where you have more expansive visibility, with slot canyons you never know what's around the corner. Similarly, unlike mountains, slot canyons can look like they aren't much from a normal vantage point above; they're unassuming until you get in. While peaks have an overcoming quality where you conquer them and get to the top, canyons have a more introspective feel of rebirth and journeying from darkness to light. These are ways that moving through canyons can parallel parts of the journey of life. (GPS data best estimate)",
       "captionAuthor": "lauren",
       "coreTrip": true,
       "location": {
-        "lat": 37.006818,
-        "lng": -111.859016
+        "lat": 37.007,
+        "lng": -111.870701
       },
-      "routeFrac": 0.1801,
+      "routeFrac": 0.3075,
       "dateCreated": "2026-04-05T00:17:28.000Z",
-      "_icloudCaption": false
+      "_icloudCaption": false,
+      "_gpsEstimate": true
     },
     {
       "id": "028C6C95-1B56-412E-81C6-F35AD9A5F543",
@@ -275,13 +276,17 @@
       "originalFilename": "IMG_4358.jpeg",
       "isVideo": false,
       "photographer": "maggie",
-      "caption": "This was my favorite tree",
+      "caption": "This was my favorite tree (GPS data best estimate)",
       "captionAuthor": "maggie",
       "coreTrip": true,
-      "location": null,
-      "routeFrac": null,
+      "location": {
+        "lat": 36.99229174465961,
+        "lng": -111.78380628515576
+      },
+      "routeFrac": 0.621,
       "dateCreated": "2026-04-05T22:33:29.000Z",
-      "_icloudCaption": false
+      "_icloudCaption": false,
+      "_gpsEstimate": true
     },
     {
       "id": "67BADE41-E679-4391-9DEE-81D843AB26DB",

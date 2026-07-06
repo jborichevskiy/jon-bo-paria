@@ -838,7 +838,7 @@
   <div class="rp-photo-wrap">
     <div class="rp-photo">
       <img id="rp-img" src="" alt="" />
-      <video id="rp-video" src="" controls playsinline preload="metadata" style="display:none"></video>
+      <video id="rp-video" src="" controls playsinline loop muted preload="metadata" style="display:none"></video>
       <div class="rp-photo-overlay" id="rp-photo-overlay"></div>
       <div class="rp-placeholder" id="rp-placeholder">Click Next →<br>to begin</div>
     </div>
@@ -1650,6 +1650,16 @@
     const next = photos[Math.min(idx + 1, photos.length - 1)];
     const dur = fromMarkerClick ? 1400 : 2200;
 
+    // Highlight the active marker immediately (tied to the loaded photo, not the
+    // camera arriving) so it's clear which one is selected the instant you click.
+    const activeEl = markers[idx]?.getElement();
+    if (activeEl) {
+      activeEl.classList.add('active');
+      activeEl.style.background  = '#fff';
+      activeEl.style.color       = photos[idx].color;
+      activeEl.style.borderColor = photos[idx].color;
+    }
+
     // Leave overview mode BEFORE flying: the map column resizes from full-width to
     // 40% and padding clears, so the camera targets the marker within the final size.
     setOverviewMode(false);
@@ -1680,18 +1690,6 @@
       });
     }
 
-    const capturedIdx = idx;
-    map.once('moveend', () => {
-      // Use capturedIdx so rapid clicks don't corrupt marker state
-      if (capturedIdx >= markers.length) return;
-      const activeEl = markers[capturedIdx]?.getElement();
-      if (!activeEl) return;
-      activeEl.classList.add('active');
-      activeEl.style.background  = '#fff';
-      activeEl.style.color       = photos[capturedIdx].color;
-      activeEl.style.borderColor = photos[capturedIdx].color;
-    });
-
     // Update right panel
     const photo   = document.querySelector('.rp-photo');
     const bottom  = document.querySelector('.rp-bottom');
@@ -1718,6 +1716,12 @@
         if (video.src.indexOf(p.img) === -1) video.src = p.img;
         video.style.display = '';
         img.style.display = 'none';
+        // Autoplay + loop the clip. Muted is required for browsers to permit
+        // autoplay; users can unmute via the controls.
+        video.loop = true;
+        video.muted = true;
+        video.currentTime = 0;
+        video.play().catch(() => {});
       } else {
         img.src = p.img; // already in browser cache
         img.style.display = '';

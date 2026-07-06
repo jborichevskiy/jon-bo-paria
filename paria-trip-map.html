@@ -964,6 +964,52 @@
 
   const routeStats = computeRouteStats();
 
+  // ── ROUTE PARAMETERIZATION ─────────────────────────────────────────────────
+  // Build a cumulative-fraction table (0–1 by distance) over the trail polyline so
+  // we can map any photo's routeFrac to a point on the trail and, more importantly,
+  // to the *direction the trail is heading* there. Camera bearings follow this
+  // smoothed heading rather than the marker-to-next-marker vector — the latter swings
+  // wildly (photos are sparse & sometimes off-trail) and aims the camera across canyon
+  // walls, occluding the pin. The trail heading changes gradually and looks *down the
+  // canyon corridor*, which is open ground, so the pin stays visible.
+  const _routeCoords = route.geometry.coordinates;
+  const _routeCumFrac = (() => {
+    const cum = [0];
+    let total = 0;
+    for (let i = 1; i < _routeCoords.length; i++) {
+      total += haversinekm(_routeCoords[i - 1], _routeCoords[i]);
+      cum.push(total);
+    }
+    return total > 0 ? cum.map(d => d / total) : cum;
+  })();
+
+  // Point on the trail at cumulative fraction `frac` (0–1), linearly interpolated.
+  function routePosAtFrac(frac) {
+    const f = Math.max(0, Math.min(1, frac));
+    for (let i = 1; i < _routeCumFrac.length; i++) {
+      if (_routeCumFrac[i] >= f) {
+        const f0 = _routeCumFrac[i - 1], f1 = _routeCumFrac[i];
+        const t = f1 > f0 ? (f - f0) / (f1 - f0) : 0;
+        const a = _routeCoords[i - 1], b = _routeCoords[i];
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      }
+    }
+    return _routeCoords[_routeCoords.length - 1];
+  }
+
+  // Smoothed down-trail heading at `frac`: bearing from a point `half` behind to a
+  // point `half` ahead (in route fraction). The wide window averages out local
+  // zigzags so consecutive photos never differ by more than the canyon actually turns.
+  function trailHeadingAtFrac(frac, half = 0.02) {
+    const back  = routePosAtFrac(frac - half);
+    const fwd   = routePosAtFrac(frac + half);
+    // Degenerate window (start/end of trail) — fall back to a tiny local step.
+    if (back[0] === fwd[0] && back[1] === fwd[1]) {
+      return bearingBetween(routePosAtFrac(frac), routePosAtFrac(Math.min(1, frac + 0.005)));
+    }
+    return bearingBetween(back, fwd);
+  }
+
   // ============================================================
   // PHOTOS — loaded dynamically from photos/trip/{person}/captions.json
   // Add more names to TRIP_PERSONS to include additional photographers.
@@ -1624,9 +1670,12 @@
         duration: dur, essential: true
       });
     } else {
-      const bearing = bearingBetween([p.lng, p.lat], [next.lng, next.lat]);
+      // Aim down the trail corridor at this photo's position (smoothed heading),
+      // not at the next marker — keeps the pin on open ground ahead of the camera
+      // and avoids the wild bearing swings sparse markers produce.
+      const bearing = trailHeadingAtFrac(p.routeFrac);
       map.flyTo({
-        center: [p.lng, p.lat], zoom: 13.5, pitch: 65, bearing,
+        center: [p.lng, p.lat], zoom: 13.5, pitch: 60, bearing,
         duration: dur, essential: true
       });
     }

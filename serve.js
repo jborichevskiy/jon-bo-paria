@@ -68,14 +68,37 @@ http.createServer((req, res) => {
   const filePath = path.join(ROOT, urlPath);
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
 
-  fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404); return res.end('Not found'); }
+  fs.stat(filePath, (statErr, stat) => {
+    if (statErr || !stat.isFile()) { res.writeHead(404); return res.end('Not found'); }
     const ext = path.extname(filePath).toLowerCase();
     const headers = { 'Content-Type': MIME[ext] ?? 'application/octet-stream' };
     // content.json is the live source of truth — never let the browser serve a stale copy.
     if (urlPath.endsWith('content.json')) headers['Cache-Control'] = 'no-store';
+
+    // Safari (and HTML5 video generally) requires proper HTTP range support — it opens
+    // media with `Range: bytes=0-1` and needs a 206 + Accept-Ranges/Content-Range back,
+    // otherwise it shows a black player with no duration. Serve ranges for everything.
+    headers['Accept-Ranges'] = 'bytes';
+    const range = req.headers.range;
+    const m = range && /^bytes=(\d*)-(\d*)$/.exec(range);
+    if (m && (m[1] !== '' || m[2] !== '')) {
+      let start = m[1] === '' ? null : parseInt(m[1], 10);
+      let end   = m[2] === '' ? null : parseInt(m[2], 10);
+      if (start === null) { start = Math.max(0, stat.size - end); end = stat.size - 1; } // suffix range
+      if (end === null || end >= stat.size) end = stat.size - 1;
+      if (start > end || start >= stat.size) {
+        res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` });
+        return res.end();
+      }
+      headers['Content-Range']  = `bytes ${start}-${end}/${stat.size}`;
+      headers['Content-Length'] = end - start + 1;
+      res.writeHead(206, headers);
+      return fs.createReadStream(filePath, { start, end }).pipe(res);
+    }
+
+    headers['Content-Length'] = stat.size;
     res.writeHead(200, headers);
-    res.end(data);
+    fs.createReadStream(filePath).pipe(res);
   });
 }).listen(PORT, () => {
   console.log(`Serving at http://localhost:${PORT}/`);

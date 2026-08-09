@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0f12" />
+  <title>Paria Canyon 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --bg: #0e0f12;
+      --bg-elev: #17191e;
+      --line: #2a2d34;
+      --fg: #f2f3f5;
+      --muted: #9aa0aa;
+      --accent: #d85a30;
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    html { height: -webkit-fill-available; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--fg);
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+    img { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ---- Views ---- */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* =================== OVERVIEW =================== */
+    #overview.active {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: calc(var(--safe-t) + 32px) 22px calc(var(--safe-b) + 32px);
+      gap: 22px;
+    }
+    .ov-title { font-size: 30px; font-weight: 700; letter-spacing: 0.5px; margin: 0; line-height: 1.15; }
+    .ov-dates { color: var(--muted); font-size: 14px; margin: -8px 0 0; }
+    .ov-stats { display: flex; gap: 10px; width: 100%; max-width: 360px; }
+    .ov-stat { flex: 1; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 12px; padding: 14px 6px; }
+    .ov-stat-val { display: block; font-size: 19px; font-weight: 700; }
+    .ov-stat-label { display: block; font-size: 10.5px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .ov-people { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+    .ov-person { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+    .ov-actions { display: flex; flex-direction: column; gap: 11px; width: 100%; max-width: 320px; }
+    .btn { border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); border-radius: 12px; padding: 15px; font-size: 15px; font-weight: 500; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn:active { transform: scale(0.985); }
+    .ov-maplink { color: var(--muted); font-size: 12.5px; text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+
+    /* =================== TOP BAR =================== */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; gap: 10px;
+      padding: calc(var(--safe-t) + 10px) 14px 10px;
+      background: rgba(14,15,18,0.82);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-btn { border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 9px; padding: 8px 11px; font-size: 13px; line-height: 1; }
+    .topbar-title { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .topbar-spacer { flex: 1; }
+
+    /* =================== GALLERY =================== */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 3px; padding: 3px; padding-bottom: calc(var(--safe-b) + 3px); }
+    .cell { position: relative; aspect-ratio: 1; background: var(--bg-elev); overflow: hidden; border: 0; padding: 0; }
+    .cell img { width: 100%; height: 100%; object-fit: cover; }
+    .cell:active img { opacity: 0.7; }
+    .cell-badge { position: absolute; right: 5px; bottom: 5px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; padding-left: 2px; }
+
+    /* =================== SLIDESHOW =================== */
+    #slideshow.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+    /* Pure-flex layout: media and the caption/footer panel sit in NORMAL flow inside
+       .slide-body (a flex column). Media takes all leftover space (flex:1); the panel takes
+       only what it needs (flex:none). The photo/video is object-fit:contain, centered in
+       the media box with black space split evenly top/bottom. No JS measurement needed.
+       Only when a long caption is EXPANDED does the panel switch to position:absolute and
+       slide up over the bottom of the media — which does NOT change the media box, so the
+       photo never moves. */
+    .slide-body { flex: 1; position: relative; min-height: 0; overflow: hidden; }
+    /* Media is a FIXED full-height layer (inset:0) in BOTH caption states, so the centered
+       photo never moves. It centers the photo within the area ABOVE the collapsed panel via
+       a constant padding-bottom (set once per slide in JS to the collapsed panel height),
+       keeping the photo fully visible when collapsed. */
+    .slide-media {
+      position: absolute; inset: 0; background: #000;
+      box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      touch-action: pan-y pinch-zoom;   /* vertical page scroll ok; we handle horizontal */
+    }
+    .slide-media img, .slide-media video {
+      max-width: 100%; max-height: 100%; object-fit: contain;
+      will-change: transform;
+      user-select: none; -webkit-user-select: none;
+    }
+    .slide-tap { position: absolute; top: 0; bottom: 0; width: 28%; z-index: 4; }
+    .slide-tap.left { left: 0; }
+    .slide-tap.right { right: 0; }
+    /* When a video is showing, drop the tap zones so native controls are reachable. */
+    .slide-media.is-video .slide-tap { display: none; }
+
+    /* The caption/footer panel overlays the bottom of the media in BOTH states (collapsed =
+       short strip, expanded = grows up over the photo). It never participates in flow, so it
+       can never change the media box or move the photo. */
+    .slide-bottom {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+      display: flex; flex-direction: column;
+      background: var(--bg);
+      border-top: 1px solid var(--line);
+    }
+    .slide-bottom.expanded {
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.45);
+    }
+    .slide-caption { padding: 12px 16px 4px; }
+    .cap-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 7px; flex-wrap: wrap; }
+    .cap-cred { display: inline-flex; align-items: center; gap: 5px; }
+    .cap-cred .cap-emoji { font-size: 12px; line-height: 1; }
+
+    /* Collapsed: clamp the caption to 3 lines. The toggle is NOT inside the clamp box
+       (line-clamp would hide it); it lives in .cap-text-wrap and is pulled up to overlap
+       the tail of the 3rd line via a negative margin. */
+    .cap-text-wrap { position: relative; }
+    .cap-text {
+      font-size: 14.5px; line-height: 1.5; white-space: pre-wrap;
+      margin: 0;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .slide-bottom.expanded .cap-text {
+      display: block; -webkit-line-clamp: unset; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      max-height: calc(100dvh - 200px);   /* grow up over the photo, capped below top bar */
+      padding-right: 2px;
+    }
+    .cap-text.empty { color: var(--muted); font-style: italic; }
+    .cap-toggle {
+      /* sits on the last clamped line; gradient fades the underlying 3rd line into it */
+      background: linear-gradient(to right, rgba(14,15,18,0), var(--bg) 28%);
+      border: none; padding: 0 0 0 22px; margin: 0;
+      color: var(--accent); font: inherit; font-weight: 500; white-space: nowrap;
+      position: absolute; right: 0; bottom: 0;
+      display: none;                       /* revealed only when caption overflows */
+    }
+    .slide-bottom.expanded .cap-toggle { display: none; }   /* hide chip over the open caption */
+    .cap-toggle.visible { display: inline-block; }
+    /* inline "show less" — only when expanded, flows right after the last word */
+    .cap-toggle-inline {
+      display: none; border: none; background: none; padding: 0; margin-left: 6px;
+      color: var(--accent); font: inherit; font-weight: 500; white-space: nowrap;
+    }
+    .slide-bottom.expanded .cap-toggle-inline { display: inline; }
+
+    .slide-footer {
+      flex: none;
+      background: var(--bg);
+      padding: 8px 16px calc(var(--safe-b) + 10px);
+    }
+    .slide-nav { display: flex; align-items: center; gap: 10px; }
+    .slide-nav button { flex: 1; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); border-radius: 10px; padding: 12px; font-size: 14px; }
+    .slide-nav button:disabled { opacity: 0.35; }
+    .slide-progress { font-size: 12px; color: var(--muted); min-width: 62px; text-align: center; }
+
+    .loading { padding: 60px 20px; text-align: center; color: var(--muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== OVERVIEW ===================== -->
+<section id="overview" class="view active">
+  <div class="loading" id="ov-loading">Loading…</div>
+  <div id="ov-content" style="display:none; flex-direction:column; align-items:center; gap:22px;">
+    <h1 class="ov-title">Paria Canyon 2026</h1>
+    <p class="ov-dates">April 4–8, 2026</p>
+    <div class="ov-stats">
+      <div class="ov-stat"><span class="ov-stat-val">33.5</span><span class="ov-stat-label">Miles</span></div>
+      <div class="ov-stat"><span class="ov-stat-val">4579</span><span class="ov-stat-label">ft Elev</span></div>
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-moments">—</span><span class="ov-stat-label">Moments</span></div>
+    </div>
+    <div class="ov-people">
+      <div class="ov-person">Gary</div>
+      <div class="ov-person">Lauren</div>
+      <div class="ov-person">Maggie</div>
+      <div class="ov-person">Jon</div>
+    </div>
+    <div class="ov-actions">
+      <button class="btn btn-primary" data-go="slide" data-idx="0">▶ Start slideshow</button>
+      <button class="btn" data-go="gallery">▦ View photos</button>
+    </div>
+    <a class="ov-maplink" href="index.html?desktop">View interactive map →</a>
+  </div>
+</section>
+
+<!-- ===================== GALLERY ===================== -->
+<section id="gallery" class="view">
+  <div class="topbar">
+    <button class="topbar-btn" data-go="overview">‹ Home</button>
+    <span class="topbar-title">Gallery</span>
+    <span class="topbar-spacer"></span>
+    <button class="topbar-btn" data-go="slide" data-idx="0">▶ Slideshow</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<!-- ===================== SLIDESHOW ===================== -->
+<section id="slideshow" class="view">
+  <div class="topbar">
+    <button class="topbar-btn" data-go="gallery">▦ Gallery</button>
+    <span class="topbar-title">Slideshow</span>
+    <span class="topbar-spacer"></span>
+    <button class="topbar-btn" data-go="overview">‹ Home</button>
+  </div>
+  <!-- .slide-body is the positioning context: media fills it, and the expanded caption
+       panel anchors to the bottom of THIS box (not the viewport). Because the media box
+       height is identical whether the caption is collapsed or expanded, the centered photo
+       never shifts when the caption opens. -->
+  <div class="slide-body">
+    <div class="slide-media" id="slide-media">
+      <div class="slide-tap left" data-step="-1"></div>
+      <div class="slide-tap right" data-step="1"></div>
+    </div>
+    <div class="slide-bottom" id="slide-bottom">
+      <div class="slide-caption">
+        <div class="cap-meta" id="cap-meta"></div>
+        <div class="cap-text-wrap">
+          <p class="cap-text" id="cap-text"><span id="cap-body"></span><button class="cap-toggle-inline" id="cap-toggle-inline">show less</button></p>
+          <button class="cap-toggle" id="cap-toggle"></button>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="slide-nav">
+          <button id="btn-prev" data-step="-1">← Prev</button>
+          <span class="slide-progress" id="slide-progress"></span>
+          <button id="btn-next" data-step="1">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // ── Shared helpers copied from paria-trip-map.html (single source of truth) ──
+  const PERSON_COLORS = { gary: '#e8a020', lauren: '#2bb5a0', maggie: '#b55ad0', jon: '#4a9fd0' };
+  const personColor = p => PERSON_COLORS[(p || '').toLowerCase()] ?? '#d85a30';
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+  // Load the downscaled web copy (photos/web/…) generated by resize_photos.js; full-res
+  // phone JPEGs are far too heavy for mobile. Falls back to the original if missing.
+  const webSrc = src => src && src.startsWith('photos/') ? src.replace(/^photos\//, 'photos/web/') : src;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmtMDT(iso) {
+    if (!iso) return { date: '', time: '' };
+    const t = Date.parse(iso);
+    if (Number.isNaN(t)) return { date: '', time: '' };
+    const d = new Date(t - 6 * 3600 * 1000); // shift UTC → MDT, then read UTC fields
+    let h = d.getUTCHours();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return {
+      date: `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`,
+      time: `${h}:${String(d.getUTCMinutes()).padStart(2, '0')} ${ampm}`,
+    };
+  }
+  function loadPhotos() {
+    const all = (window.TRIP_CONTENT?.photos ?? []).map(p => {
+      const person = (p.photographer || '').toLowerCase();
+      const { date, time } = fmtMDT(p.dateCreated);
+      const caption = p.caption ?? '';
+      const capAuthor = (p.captionAuthor || person || '').toLowerCase();
+      return {
+        person: person ? person[0].toUpperCase() + person.slice(1) : '',
+        color: personColor(person),
+        captionAuthor: capAuthor ? capAuthor[0].toUpperCase() + capAuthor.slice(1) : '',
+        captionAuthorColor: personColor(capAuthor),
+        date, time,
+        title: caption.split(' - ')[0] ?? '',
+        caption,
+        img: p.image,
+        isVideo: !!p.isVideo,
+        sortKey: Date.parse(p.dateCreated) || 0,
+      };
+    });
+    all.sort((a, b) => a.sortKey - b.sortKey);
+    all.forEach((p, i) => p.id = i + 1);
+    return all;
+  }
+  function attachImgFallback(img, originalSrc) {
+    img.onerror = () => {
+      img.onerror = null;
+      if (img.src.indexOf('/web/') !== -1) img.src = originalSrc;
+    };
+  }
+
+  // ── State ──
+  let PHOTOS = [];
+  let currentIdx = 0;
+
+  // ── Hash-based routing so iOS back-swipe / back button works between views ──
+  //   #overview | #gallery | #slide/<n>
+  const VIEWS = ['overview', 'gallery', 'slideshow'];
+  function showView(name, { push = true } = {}) {
+    VIEWS.forEach(v => document.getElementById(v).classList.toggle('active', v === name));
+    if (name !== 'slideshow') {
+      const v = document.querySelector('#slide-media video');
+      if (v) v.pause();
+    }
+    if (name !== 'slideshow') window.scrollTo(0, 0);
+    if (push) {
+      const hash = name === 'slideshow' ? `#slide/${currentIdx}` : `#${name}`;
+      if (location.hash !== hash) history.pushState(null, '', hash);
+    }
+  }
+  function parseHash() {
+    const h = location.hash.replace(/^#/, '');
+    const m = h.match(/^slide\/(\d+)$/);
+    if (m) return { view: 'slideshow', idx: parseInt(m[1], 10) };
+    if (h === 'gallery') return { view: 'gallery' };
+    return { view: 'overview' };
+  }
+
+  // ── Gallery ──
+  function buildGallery() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    PHOTOS.forEach((p, i) => {
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.setAttribute('aria-label', p.title || `Photo ${i + 1}`);
+      cell.addEventListener('click', () => startSlideshow(i));
+      if (p.isVideo) {
+        cell.innerHTML =
+          `<div style="width:100%;height:100%;background:${p.color}22"></div>` +
+          `<span class="cell-badge">▶</span>`;
+      } else {
+        const img = document.createElement('img');
+        img.loading = 'lazy'; img.decoding = 'async'; img.alt = p.title || '';
+        img.src = webSrc(p.img);
+        attachImgFallback(img, p.img);
+        cell.appendChild(img);
+      }
+      grid.appendChild(cell);
+    });
+  }
+
+  // ── Slideshow ──
+  function startSlideshow(idx, opts) {
+    currentIdx = Math.max(0, Math.min(PHOTOS.length - 1, idx));
+    showView('slideshow', opts);
+    renderSlide(currentIdx);
+  }
+  const step = d => goTo(currentIdx + d);
+  function goTo(idx) {
+    idx = Math.max(0, Math.min(PHOTOS.length - 1, idx));
+    if (idx === currentIdx) return;
+    currentIdx = idx;
+    history.replaceState(null, '', `#slide/${idx}`);   // swipe = replace, not a new entry
+    renderSlide(idx);
+  }
+
+  function renderSlide(idx) {
+    const p = PHOTOS[idx];
+    const media = document.getElementById('slide-media');
+    media.querySelectorAll('img, video').forEach(el => el.remove());
+    media.classList.toggle('is-video', p.isVideo);
+
+    if (p.isVideo) {
+      const v = document.createElement('video');
+      // Set src via a <source> child with an explicit MIME type — Safari is pickier
+      // than Chromium about resolving the type from the extension alone.
+      const src = document.createElement('source');
+      src.src = p.img;
+      src.type = 'video/mp4';
+      v.appendChild(src);
+      v.controls = true; v.playsInline = true; v.loop = true;
+      v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+      v.muted = true; v.preload = 'auto'; v.autoplay = true;
+      media.appendChild(v);
+      // Log the real failure reason so Safari issues are diagnosable.
+      v.addEventListener('error', () => {
+        const err = v.error;
+        console.warn('[video error]', p.img, err ? `code=${err.code} msg=${err.message}` : 'unknown');
+      });
+      // Let the autoplay attribute initiate playback; only nudge play() once data is ready.
+      v.addEventListener('canplay', () => v.play().catch(() => {}), { once: true });
+    } else {
+      const img = document.createElement('img');
+      img.alt = p.title || '';
+      img.draggable = false;
+      img.src = webSrc(p.img);
+      attachImgFallback(img, p.img);
+      media.appendChild(img);
+      preloadAdjacent(idx);
+    }
+
+    // 📷 = photo author · ✏️ = caption author (always shown when present, even if it
+    // matches the photographer). No color dots anywhere in the mobile view.
+    const meta = document.getElementById('cap-meta');
+    let metaHtml = `<span class="cap-cred"><span class="cap-emoji">📷</span>${escapeHtml(p.person)}</span>`;
+    if (p.captionAuthor) {
+      metaHtml += `<span class="cap-cred"><span class="cap-emoji">✏️</span>${escapeHtml(p.captionAuthor)}</span>`;
+    }
+    const when = [p.date, p.time].filter(Boolean).join(' · ');
+    if (when) metaHtml += `<span>${escapeHtml(when)}</span>`;
+    meta.innerHTML = metaHtml;
+
+    // Caption: clamp to 3 lines; reveal the "show more" chip only when it overflows.
+    const bottom  = document.getElementById('slide-bottom');
+    const capText = document.getElementById('cap-text');
+    const capBody = document.getElementById('cap-body');
+    const toggle  = document.getElementById('cap-toggle');
+    bottom.classList.remove('expanded');
+    toggle.classList.remove('visible');
+    toggle.textContent = 'show more';
+    if (p.caption) { capBody.textContent = p.caption; capText.classList.remove('empty'); }
+    else { capBody.textContent = 'No caption'; capText.classList.add('empty'); }
+
+    document.getElementById('slide-progress').textContent = `${idx + 1} of ${PHOTOS.length}`;
+    document.getElementById('btn-prev').disabled = idx === 0;
+    document.getElementById('btn-next').disabled = idx === PHOTOS.length - 1;
+
+    // After layout: (1) surface the toggle if the clamped caption is hiding content, and
+    // (2) set the media's constant bottom padding to the COLLAPSED panel height, so the
+    // photo centers within the visible area above the panel and stays fully visible. The
+    // media layer is full-height and this padding is fixed for the slide, so expanding the
+    // caption (which only overlays the panel) never moves the photo.
+    requestAnimationFrame(() => {
+      if (p.caption && capText.scrollHeight - capText.clientHeight > 2) {
+        toggle.classList.add('visible');
+      }
+      document.getElementById('slide-media').style.paddingBottom = bottom.offsetHeight + 'px';
+    });
+  }
+
+  // Expand/collapse the caption. The media layer (and its bottom padding) never changes, so
+  // the centered photo stays exactly put; the panel simply grows up over the bottom of the
+  // photo and the caption scrolls within itself (capped below the top bar).
+  function toggleCaption() {
+    const bottom = document.getElementById('slide-bottom');
+    const expanded = bottom.classList.toggle('expanded');
+    if (expanded) document.getElementById('cap-text').scrollTop = 0;
+  }
+
+  function preloadAdjacent(idx) {
+    [idx - 1, idx + 1].forEach(i => {
+      const p = PHOTOS[i];
+      if (p && !p.isVideo) new Image().src = webSrc(p.img);
+    });
+  }
+
+  // ── Live-drag swipe (photo follows your finger, then snaps) ──
+  (function initSwipe() {
+    const media = document.getElementById('slide-media');
+    let x0 = 0, y0 = 0, dx = 0, dragging = false, locked = null;
+    const THRESHOLD = 50;
+
+    const currentImg = () => media.querySelector('img');
+
+    media.addEventListener('touchstart', e => {
+      if (media.classList.contains('is-video')) return;      // let video controls work
+      if (e.touches.length !== 1) { dragging = false; return; }
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+      dx = 0; dragging = true; locked = null;
+    }, { passive: true });
+
+    media.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      const mx = e.touches[0].clientX - x0;
+      const my = e.touches[0].clientY - y0;
+      // Decide axis once: horizontal swipe only if clearly more horizontal than vertical.
+      if (locked === null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) {
+        locked = Math.abs(mx) > Math.abs(my) * 1.4 ? 'h' : 'v';
+      }
+      if (locked !== 'h') return;
+      dx = mx;
+      const img = currentImg();
+      if (img) {
+        // Rubber-band at the ends so you feel the boundary.
+        const atStart = currentIdx === 0 && dx > 0;
+        const atEnd = currentIdx === PHOTOS.length - 1 && dx < 0;
+        const eased = (atStart || atEnd) ? dx * 0.35 : dx;
+        img.style.transition = 'none';
+        img.style.transform = `translateX(${eased}px)`;
+      }
+    }, { passive: true });
+
+    function endSwipe() {
+      if (!dragging) return;
+      dragging = false;
+      const img = currentImg();
+      if (locked === 'h' && Math.abs(dx) > THRESHOLD) {
+        step(dx < 0 ? 1 : -1);                                // commits & re-renders
+      } else if (img) {
+        img.style.transition = 'transform .18s ease';
+        img.style.transform = 'translateX(0)';
+      }
+      dx = 0; locked = null;
+    }
+    media.addEventListener('touchend', endSwipe, { passive: true });
+    media.addEventListener('touchcancel', endSwipe, { passive: true });
+  })();
+
+  // ── Tap zones + nav buttons (event delegation) ──
+  document.addEventListener('click', e => {
+    if (e.target.closest('#cap-toggle') || e.target.closest('#cap-toggle-inline')) { toggleCaption(); return; }
+    const go = e.target.closest('[data-go]');
+    if (go) {
+      const dest = go.dataset.go;
+      if (dest === 'slide') startSlideshow(parseInt(go.dataset.idx || '0', 10));
+      else showView(dest);
+      return;
+    }
+    const st = e.target.closest('[data-step]');
+    if (st) { step(parseInt(st.dataset.step, 10)); }
+  });
+
+  // ── Back/forward (iOS back-swipe) drives the view via the hash ──
+  window.addEventListener('popstate', () => {
+    const { view, idx } = parseHash();
+    if (view === 'slideshow') startSlideshow(idx ?? 0, { push: false });
+    else showView(view, { push: false });
+  });
+
+  // ── Keyboard (desktop preview convenience) ──
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('slideshow').classList.contains('active')) return;
+    if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+
+  // ── Boot: load content.json (same cache-busted fetch as the map) ──
+  fetch(`content.json?t=${Date.now()}`)
+    .then(r => r.json())
+    .then(json => {
+      window.TRIP_CONTENT = json;
+      PHOTOS = loadPhotos();
+      document.getElementById('ov-moments').textContent = PHOTOS.length;
+      buildGallery();
+      document.getElementById('ov-loading').style.display = 'none';
+      document.getElementById('ov-content').style.display = 'flex';
+      // Honor an incoming deep link (#gallery / #slide/n) instead of always landing home.
+      const { view, idx } = parseHash();
+      if (view === 'slideshow') startSlideshow(idx ?? 0, { push: false });
+      else if (view === 'gallery') showView('gallery', { push: false });
+    })
+    .catch(err => {
+      console.error('Failed to load content.json', err);
+      document.getElementById('ov-loading').textContent = 'Failed to load photos.';
+    });
+</script>
+</body>
+</html>

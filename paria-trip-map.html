@@ -2,8 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <script>
+    // Phones get the lightweight photo-only experience (mobile.html) — this heavy 3D map
+    // assumes a wide screen. Run before anything else loads. The ?desktop escape hatch
+    // lets a phone force the full map anyway.
+    //
+    // Detection notes (the iPhone-shows-desktop bug): this script used to run BEFORE the
+    // <meta viewport> tag, so iOS Safari reported the 980px layout viewport and
+    // matchMedia('(max-width:768px)') never fired. The viewport meta is now above, but we
+    // ALSO layer two layout-independent signals so detection is robust:
+    //   1. screen.width — the device screen in CSS px, unaffected by viewport/zoom race
+    //   2. (pointer: coarse) — primary input is a finger, not a mouse
+    // A narrow desktop window (resized browser) has a fine pointer, so it correctly stays
+    // on the map. iPhone 13 Pro = 390px screen → mobile. iPad can add ?desktop if wanted.
+    (function () {
+      if (location.search.indexOf('desktop') !== -1) return;   // explicit escape hatch
+      var narrowScreen = Math.min(screen.width, screen.height) <= 768;
+      var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      // Phone = small device screen AND touch-primary. (narrow window alone → keep map.)
+      if (narrowScreen && coarse) {
+        location.replace('mobile.html' + location.search + location.hash);
+      }
+    })();
+  </script>
   <title>Paria Canyon Traverse, 2026</title>
-  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -10,7 +10,13 @@ mkdir -p dist
 
 # Core files
 cp paria-trip-map.html dist/index.html
+cp mobile.html dist/          # phone-only photo gallery/slideshow (index.html redirects here on small screens)
 cp content.json dist/
+
+# Generate/refresh downscaled web copies (photos/web/…) that the photo panel loads —
+# full-res originals decoded in ~1s and stalled the map. Idempotent & non-destructive.
+echo "▶ Refreshing web-sized photos..."
+node resize_photos.js
 
 # Photos — ship transcoded .mp4 web videos; skip the raw .mov originals (large, Pages 25MB limit)
 rsync -a --exclude='*.mov' --exclude='*.MOV' \

@@ -153,9 +153,10 @@
     }
     .cap-text.empty { color: var(--muted); font-style: italic; }
     .cap-toggle {
-      /* sits on the last clamped line; gradient fades the underlying 3rd line into it */
-      background: linear-gradient(to right, rgba(14,15,18,0), var(--bg) 28%);
-      border: none; padding: 0 0 0 22px; margin: 0;
+      /* sits on the last clamped line; gradient fades the underlying 3rd line into it.
+         Wider fade + left padding so the chip has breathing room after the last word. */
+      background: linear-gradient(to right, rgba(14,15,18,0), rgba(14,15,18,0.85) 30%, var(--bg) 55%);
+      border: none; padding: 0 0 0 48px; margin: 0;
       color: var(--accent); font: inherit; font-weight: 500; white-space: nowrap;
       position: absolute; right: 0; bottom: 0;
       display: none;                       /* revealed only when caption overflows */
@@ -196,20 +197,15 @@
     <p class="ov-dates">April 4–8, 2026</p>
     <div class="ov-stats">
       <div class="ov-stat"><span class="ov-stat-val">33.5</span><span class="ov-stat-label">Miles</span></div>
-      <div class="ov-stat"><span class="ov-stat-val">4579</span><span class="ov-stat-label">ft Elev</span></div>
-      <div class="ov-stat"><span class="ov-stat-val" id="ov-moments">—</span><span class="ov-stat-label">Moments</span></div>
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-moments">—</span><span class="ov-stat-label">Photos</span></div>
     </div>
     <div class="ov-people">
-      <div class="ov-person">Gary</div>
-      <div class="ov-person">Lauren</div>
-      <div class="ov-person">Maggie</div>
-      <div class="ov-person">Jon</div>
+      <div class="ov-person">Gary, Luaren, Maggie, and Jon</div>
     </div>
     <div class="ov-actions">
       <button class="btn btn-primary" data-go="slide" data-idx="0">▶ Start slideshow</button>
-      <button class="btn" data-go="gallery">▦ View photos</button>
+      <button class="btn" data-go="gallery">▦ View all photos</button>
     </div>
-    <a class="ov-maplink" href="index.html?desktop">View interactive map →</a>
   </div>
 </section>
 
@@ -228,7 +224,6 @@
 <section id="slideshow" class="view">
   <div class="topbar">
     <button class="topbar-btn" data-go="gallery">▦ Gallery</button>
-    <span class="topbar-title">Slideshow</span>
     <span class="topbar-spacer"></span>
     <button class="topbar-btn" data-go="overview">‹ Home</button>
   </div>
@@ -423,7 +418,7 @@
       metaHtml += `<span class="cap-cred"><span class="cap-emoji">✏️</span>${escapeHtml(p.captionAuthor)}</span>`;
     }
     const when = [p.date, p.time].filter(Boolean).join(' · ');
-    if (when) metaHtml += `<span>${escapeHtml(when)}</span>`;
+    if (when) metaHtml += `<span class="cap-dot">·</span><span>${escapeHtml(when)}</span>`;
     meta.innerHTML = metaHtml;
 
     // Caption: clamp to 3 lines; reveal the "show more" chip only when it overflows.

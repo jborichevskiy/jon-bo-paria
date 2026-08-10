@@ -72,13 +72,13 @@
       background: #161616;
       border-bottom: 1px solid #252525;
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
     .map-header-left {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 12px;
     }
     .map-header-right {
@@ -94,6 +94,7 @@
       letter-spacing: 0.01em;
     }
     .map-header p {
+      display: none;   /* subtitle hidden for now */
       margin: 0;
       font-size: var(--fs-sm);
       color: #555;
@@ -440,33 +441,12 @@
       height: 12px;
       border-radius: 50%;
     }
-    .overview-help {
-      text-align: left;
-      background: #1a1a1a;
-      border-radius: 8px;
-      padding: 18px 20px;
-      max-width: 300px;
-    }
-    .overview-help-title {
-      font-size: var(--fs-sm);
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .overview-help-item {
-      display: flex;
-      gap: 10px;
+    .overview-message {
       font-size: var(--fs-md);
       color: #888;
-      margin-bottom: 8px;
-      line-height: 1.4;
-    }
-    .overview-help-item:last-child { margin-bottom: 0; }
-    .overview-help-icon {
-      color: #d85a30;
-      flex-shrink: 0;
+      line-height: 1.5;
+      max-width: 34ch;
+      margin: 0;
     }
 
     .view-first-btn {
@@ -701,7 +681,7 @@
 
     /* ── PEOPLE FILTER ── */
     .people-filter {
-      display: flex;
+      display: none;   /* coming-soon controls hidden; JS still populates the select */
       align-items: center;
       gap: 8px;
     }
@@ -880,12 +860,8 @@
           <span class="overview-stat-label">Miles</span>
         </div>
         <div class="overview-stat">
-          <span class="overview-stat-val" id="overview-elevation">—</span>
-          <span class="overview-stat-label">ft Elev</span>
-        </div>
-        <div class="overview-stat">
           <span class="overview-stat-val" id="overview-photos">—</span>
-          <span class="overview-stat-label">Moments</span>
+          <span class="overview-stat-label">Photos</span>
         </div>
       </div>
       <div class="overview-people">
@@ -894,15 +870,8 @@
         <div class="overview-person"><span class="overview-person-dot" style="background:#b55ad0"></span>Maggie</div>
         <div class="overview-person"><span class="overview-person-dot" style="background:#4a9fd0"></span>Jon</div>
       </div>
-      <div class="overview-help">
-        <div class="overview-help-title">How to use</div>
-        <div class="overview-help-item"><span class="overview-help-icon">☰</span> People filter in top menu</div>
-        <div class="overview-help-item"><span class="overview-help-icon">☀</span> Pre/post photos top-right</div>
-        <div class="overview-help-item"><span class="overview-help-icon">▁</span> Elevation map at bottom</div>
-        <div class="overview-help-item"><span class="overview-help-icon">◉</span> Click pins to jump to photos</div>
-        <div class="overview-help-item"><span class="overview-help-icon">⊕</span> Click photos to expand</div>
-      </div>
-      <button class="view-first-btn" id="view-first-btn" onclick="stepTo(0)">View first photo</button>
+      <p class="overview-message">This is a photo log of our adventure. We hope you enjoy it!</p>
+      <button class="view-first-btn" id="view-first-btn" onclick="stepTo(0)">Start slideshow</button>
     </div>
   </div>
   <div class="rp-bottom">
@@ -2131,7 +2100,6 @@
   contentReady.then(function initOverview() {
     const allPhotos = loadPhotos();
     document.getElementById('overview-distance').textContent = routeStats.miles;
-    document.getElementById('overview-elevation').textContent = routeStats.elevation;
     document.getElementById('overview-photos').textContent = allPhotos.length;
     document.getElementById('overview-card').classList.add('visible');
     document.getElementById('rp-placeholder').style.display = 'none';

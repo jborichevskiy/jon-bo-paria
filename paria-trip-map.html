@@ -375,6 +375,48 @@
       pointer-events: none;
     }
 
+    /* ── INTERSTITIAL NOTE CARD — fills the photo area for photo-less notes ── */
+    .rp-photo.note-mode { cursor: default; }
+    .rp-note {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 14px;
+      padding: 28px 34px;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%),
+        #131313;
+    }
+    .note-glyph {
+      font-family: Georgia, 'Times New Roman', serif;  /* serif renders the quote gracefully */
+      font-size: 3rem;
+      line-height: 0.5;
+      color: #3d3d3d;
+      margin-top: 12px;
+      user-select: none;
+    }
+    .note-title {
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: #d8d4cc;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .note-text {
+      font-size: var(--fs-sm);
+      color: #a8a49c;
+      line-height: 1.85;
+      max-width: 46ch;
+    }
+    .note-author {
+      font-size: var(--fs-sm);
+      color: #666;
+    }
+
     /* ── OVERVIEW CARD ── */
     .overview-card {
       display: none;
@@ -848,6 +890,7 @@
     <div class="rp-photo">
       <img id="rp-img" src="" alt="" />
       <video id="rp-video" src="" controls playsinline loop muted preload="metadata" style="display:none"></video>
+      <div class="rp-note" id="rp-note" style="display:none"></div>
       <div class="rp-photo-overlay" id="rp-photo-overlay"></div>
       <div class="rp-placeholder" id="rp-placeholder">Click Next →<br>to begin</div>
     </div>
@@ -1060,6 +1103,67 @@
     };
   }
 
+  // ============================================================
+  // INTERSTITIALS — authorable narrative notes with NO photo.
+  // For "this part of the journey has no image, but something happened here."
+  // Each note is spliced into the photos array right after the photo whose
+  // 1-based chronological number is `after`. The camera parks at the midpoint
+  // between the two neighboring photos, zoomed out for a near-overview effect.
+  // Tune framing via camZoom/camPitch/camBearing (use the debug panel, `d` key,
+  // to read live camera values while dialing in).
+  // ============================================================
+  const INTERSTITIALS = [
+    {
+      id: 'n1',
+      after: 2,             // between #2 (gear explosion at Lee's Ferry) and #3 (White House trailhead)
+      author: 'Jon',
+      date: 'Apr 4',
+      time: '~9:50 AM',
+      title: 'The Shuttle',
+      text: 'No photos from this stretch — we were driving. After the gear explosion at Lee\'s Ferry, we left a car, and Maggie drove us to White House trailhead where we did our final gear checks and finally started walking.',
+      camZoom: 10.4, camPitch: 55, camBearing: -15,
+    },
+  ];
+
+  // MDT hour-of-day from a UTC ms timestamp (for sky tinting a photo-less note).
+  function mdthour(sk) {
+    const d = new Date(sk - 6 * 3600 * 1000);
+    return d.getUTCHours() + d.getUTCMinutes() / 60;
+  }
+
+  // Splice interstitial notes into a freshly sorted/id'd photo list, in place.
+  // Real photo ids are assigned BEFORE the splice, so inserting a note never
+  // renumbers photos (keeps localStorage viewpoint keys stable).
+  function injectInterstitials(list) {
+    for (const cfg of INTERSTITIALS) {
+      const ai = list.findIndex(p => p.id === cfg.after);
+      if (ai < 0 || ai >= list.length - 1) continue;  // anchor missing or has no successor
+      const a = list[ai], b = list[ai + 1];
+      const midSK = (a.sortKey + b.sortKey) / 2;
+      list.splice(ai + 1, 0, {
+        interstitial: true,
+        id: cfg.id,                       // string id — never collides with numeric photo ids
+        person: cfg.author || '',
+        color: '#8a8a8a',
+        captionAuthor: cfg.author || '',
+        captionAuthorColor: cfg.author ? personColor(cfg.author.toLowerCase()) : '#8a8a8a',
+        lng: (a.lng + b.lng) / 2,         // midpoint of the camera's natural flight path
+        lat: (a.lat + b.lat) / 2,
+        date: cfg.date ?? a.date,
+        time: cfg.time ?? '',
+        title: cfg.title ?? '',
+        caption: cfg.text ?? '',
+        img: null,
+        isVideo: false,
+        bearing: 0,                       // no EXIF bearing for a note
+        camZoom: cfg.camZoom, camPitch: cfg.camPitch, camBearing: cfg.camBearing,
+        routeFrac: null,                  // off-trail midpoint — not meaningful on the route
+        hour: mdthour(midSK),
+        sortKey: midSK,
+      });
+    }
+  }
+
   // loadPhotos reads the flat photos array from window.TRIP_CONTENT,
   // fetched once from content.json (the single source of truth, edited via editor.html).
   function loadPhotos() {
@@ -1091,6 +1195,7 @@
     });
     all.sort((a, b) => a.sortKey - b.sortKey);
     all.forEach((p, i) => p.id = i + 1);
+    injectInterstitials(all);
     return all;
   }
 
@@ -1102,7 +1207,8 @@
     const all = loadPhotos();
     let filtered = showExtra ? all : all.filter(p => !p.extra);
     if (selectedPeople && selectedPeople.length > 0) {
-      filtered = filtered.filter(p => selectedPeople.includes(p.person.toLowerCase()));
+      // Interstitial notes always pass — they're narrative glue, not someone's photo.
+      filtered = filtered.filter(p => p.interstitial || selectedPeople.includes(p.person.toLowerCase()));
     }
     return filtered;
   }
@@ -1227,14 +1333,23 @@
 
     drawElevationChart();
 
-    // Cinematic intro: hold the zoomed-out world view briefly, then fly into the canyon.
-    // Marked "playing" for the whole sequence (including the hold) so a photo click at any
-    // point aborts it and teleports (see stepTo).
-    introPlaying = true;
-    introTimer = setTimeout(() => {
-      map.flyTo({ ...initialView, duration: 11000, essential: true });
-      map.once('moveend', () => { introPlaying = false; });
-    }, 800);
+    // Deep link: ?photo=3 jumps straight to a stop (accepts a photo's display number
+    // or an interstitial id like n1). Skips the intro so shared links land directly.
+    const deepLink = new URLSearchParams(location.search).get('photo');
+    const deepIdx = deepLink ? photos.findIndex(p => String(p.id) === deepLink) : -1;
+
+    if (deepIdx >= 0) {
+      stepTo(deepIdx);
+    } else {
+      // Cinematic intro: hold the zoomed-out world view briefly, then fly into the canyon.
+      // Marked "playing" for the whole sequence (including the hold) so a photo click at any
+      // point aborts it and teleports (see stepTo).
+      introPlaying = true;
+      introTimer = setTimeout(() => {
+        map.flyTo({ ...initialView, duration: 11000, essential: true });
+        map.once('moveend', () => { introPlaying = false; });
+      }, 800);
+    }
   });
 
   // ============================================================
@@ -1426,8 +1541,15 @@
     const xT = sk => P.left + (sk - minSK) / skRange * (W - P.left - P.right);
     const photoPos = allPhotos.map(p => ({
       x: xT(p.sortKey),
-      y: yS(elevationAtFrac(p.routeFrac))
+      y: p.interstitial ? null : yS(elevationAtFrac(p.routeFrac))
     }));
+    // Interstitial notes have no routeFrac — sit them visually halfway between
+    // their neighbors on the elevation curve (x is already right via sortKey).
+    photoPos.forEach((pos, i) => {
+      if (pos.y !== null) return;
+      const base = H - P.bottom;
+      pos.y = ((photoPos[i - 1]?.y ?? base) + (photoPos[i + 1]?.y ?? base)) / 2;
+    });
 
     chartCache = { offscreen, W, H, xS, yS, photoPos, allPhotos };
   }
@@ -1465,6 +1587,20 @@
       const activePhoto = photos[activeIdx];
       const isActive = activePhoto && activePhoto.id === photo.id;
       const s = isActive ? SQ + 3 : SQ;
+
+      if (photo.interstitial) {
+        // Hollow dashed square — a note marker, visually distinct from photo squares.
+        ctx.beginPath();
+        ctx.setLineDash([2, 2]);
+        ctx.rect(x - s/2, y - s/2, s, s);
+        ctx.fillStyle = isActive ? '#ffffff' : '#161616';
+        ctx.fill();
+        ctx.strokeStyle = isActive ? '#8a8a8a' : 'rgba(255,255,255,0.75)';
+        ctx.lineWidth = isActive ? 2 : 1.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        return;
+      }
 
       if (!isFiltered) {
         ctx.fillStyle   = '#444';
@@ -1623,10 +1759,12 @@
   }
 
   function rebuildMarkers() {
-    markers.forEach(m => m.remove());
+    markers.forEach(m => m?.remove());
     // Build markers 1-to-1 with the filtered `photos` array so markers[i] === photos[i].
-    // This ensures stepTo(idx) always addresses the correct marker.
+    // This ensures stepTo(idx) always addresses the correct marker. Interstitial notes
+    // get NO map marker (null hole) — they're a right-panel beat, not a pinned location.
     markers = photos.map((photo, i) => {
+      if (photo.interstitial) return null;
       const el = document.createElement('div');
       el.className = 'photo-marker';
       el.textContent = photo.id;
@@ -1663,7 +1801,8 @@
     if (viewFirstBtn) viewFirstBtn.classList.add('hidden');
 
     if (currentIdx >= 0 && currentIdx < markers.length) {
-      const prevEl = markers[currentIdx].getElement();
+      // Interstitials have a null marker hole — nothing to restore.
+      const prevEl = markers[currentIdx]?.getElement();
       if (prevEl) {
         prevEl.classList.remove('active');
         prevEl.style.background  = photos[currentIdx].color;
@@ -1699,7 +1838,8 @@
     // 40% and padding clears, so the camera targets the marker within the final size.
     setOverviewMode(false);
 
-    const skyC = skyColorsAtHour(hourAtFrac(p.routeFrac));
+    // Interstitial notes have no routeFrac — tint the sky from their midpoint time.
+    const skyC = skyColorsAtHour(p.interstitial ? p.hour : hourAtFrac(p.routeFrac));
     map.setSky({
       'sky-color': skyC.sky,
       'sky-horizon-blend': 0.6,
@@ -1715,6 +1855,15 @@
     if (p.viewpoint) {
       const vp = p.viewpoint;
       cam = { center: [vp.lng, vp.lat], zoom: vp.zoom, pitch: vp.pitch, bearing: vp.bearing };
+    } else if (p.interstitial) {
+      // Note: park at the midpoint between the neighboring photos, zoomed well out
+      // (z~10.4 vs the usual 13.5) for a near-overview "meanwhile, elsewhere" beat.
+      cam = {
+        center: [p.lng, p.lat],
+        zoom:    p.camZoom    ?? 10.5,
+        pitch:   p.camPitch   ?? 55,
+        bearing: p.camBearing ?? -15,
+      };
     } else {
       // Aim down the trail corridor at this photo's position (smoothed heading), not at
       // the next marker — keeps the pin on open ground ahead of the camera and avoids the
@@ -1737,9 +1886,10 @@
     const video   = document.getElementById('rp-video');
     const ph      = document.getElementById('rp-placeholder');
 
-    // Videos need no preload gate; for images, start loading now (parallel with fade-out).
+    // Videos and interstitial notes need no preload gate; for images, start loading
+    // now (parallel with fade-out).
     let imageReady;
-    if (p.isVideo) {
+    if (p.isVideo || p.interstitial) {
       imageReady = Promise.resolve();
     } else {
       const preloader = new Image();
@@ -1759,6 +1909,40 @@
 
     const showContent = () => {
       video.pause();                       // stop any previously-playing clip
+      const noteEl = document.getElementById('rp-note');
+
+      if (p.interstitial) {
+        // Note card takes over the photo area — there is no image by design.
+        img.style.display = 'none';
+        video.removeAttribute('src');
+        video.style.display = 'none';
+        noteEl.style.display = 'flex';
+        noteEl.innerHTML =
+          `<div class="note-glyph">&rdquo;</div>` +
+          (p.title ? `<div class="note-title">${escapeHtml(p.title)}</div>` : '') +
+          `<div class="note-text">${escapeHtml(p.caption)}</div>` +
+          (p.person ? `<div class="note-author">&mdash; ${escapeHtml(p.person)}</div>` : '');
+        photo.classList.add('note-mode');
+        photo.classList.add('visible');
+        ph.style.display = 'none';
+
+        // Author · date hover overlay, same as photos.
+        const meta = [p.date, p.time].filter(Boolean).join(' · ');
+        document.getElementById('rp-photo-overlay').innerHTML = p.person
+          ? `<span class="person-dot" style="background:${p.captionAuthorColor}"></span>` +
+            `<span class="author">${escapeHtml(p.person)}</span>` +
+            (meta ? `<span class="meta">${escapeHtml(meta)}</span>` : '')
+          : '';
+
+        // No separate caption row — the note IS the content.
+        bottom.classList.remove('expanded');
+        document.querySelector('.rp-photo-wrap').style.flex = '';
+        bottom.classList.remove('visible');
+        return;
+      }
+      noteEl.style.display = 'none';
+      photo.classList.remove('note-mode');
+
       if (p.isVideo) {
         if (video.src.indexOf(p.img) === -1) video.src = p.img;
         video.style.display = '';
@@ -1872,7 +2056,7 @@
 
   function resetView() {
     if (currentIdx >= 0) {
-      markers[currentIdx].getElement().classList.remove('active');
+      markers[currentIdx]?.getElement()?.classList.remove('active');
     }
     currentIdx = -1;
     setOverviewMode(true);
@@ -2091,6 +2275,8 @@
   document.querySelector('.rp-photo').addEventListener('click', function() {
     // Videos play inline with native controls (incl. fullscreen) — don't hijack into the lightbox.
     if (currentIdx >= 0 && photos[currentIdx]?.isVideo) return;
+    // Interstitial notes have no image to zoom.
+    if (currentIdx >= 0 && photos[currentIdx]?.interstitial) return;
     // The panel shows a downscaled web copy; the lightbox opens the full-res original.
     const full = currentIdx >= 0 ? photos[currentIdx].img : document.getElementById('rp-img').src;
     if (this.classList.contains('visible') && full) openLightbox(full);
@@ -2100,7 +2286,7 @@
   contentReady.then(function initOverview() {
     const allPhotos = loadPhotos();
     document.getElementById('overview-distance').textContent = routeStats.miles;
-    document.getElementById('overview-photos').textContent = allPhotos.length;
+    document.getElementById('overview-photos').textContent = allPhotos.filter(p => !p.interstitial).length;
     document.getElementById('overview-card').classList.add('visible');
     document.getElementById('rp-placeholder').style.display = 'none';
     setOverviewMode(true);

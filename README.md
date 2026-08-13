@@ -3,7 +3,7 @@
 An interactive map of our four-day hike down Paria Canyon — photos and videos placed
 along the route, with an elevation profile and per-photographer filtering.
 
-Live at **https://map.jon.bo**
+Live at **https://paria.jon.bo**
 
 ## Architecture
 

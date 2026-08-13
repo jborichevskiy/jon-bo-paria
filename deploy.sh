@@ -25,4 +25,4 @@ rsync -a --exclude='*.mov' --exclude='*.MOV' \
 echo "▶ Deploying to Cloudflare Pages..."
 wrangler pages deploy dist --project-name paria-2026 --commit-dirty=true
 
-echo "✅ Done — https://map.jon.bo"
+echo "✅ Done — https://paria.jon.bo"

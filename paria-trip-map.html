@@ -216,6 +216,7 @@
     .top-row.overview-mode .rp-footer { display: none; }
     .top-row.overview-mode .rp-main { flex: 0 0 auto; }
     .top-row.overview-mode .rp-photo-wrap {
+      position: static;   /* back in flow so the floating card sizes to its content */
       flex: 0 0 auto;
       padding: 0;
     }
@@ -224,7 +225,10 @@
       padding: 34px 28px;
     }
 
-    /* Wraps the photo + caption so the expanded caption can overlay the photo */
+    /* Positioning context for the photo layer + caption overlay (same approach as
+       mobile.html): the photo wrap is a FIXED full-height layer and the caption bar
+       overlays its bottom in BOTH states, so the caption never participates in flow
+       and can never change the photo's box. */
     .rp-main {
       flex: 1;
       min-height: 0;
@@ -233,9 +237,13 @@
       flex-direction: column;
     }
 
+    /* Fixed full-height layer in BOTH caption states, so the centered photo never
+       moves. It centers the photo within the area ABOVE the collapsed caption bar via
+       a constant padding-bottom (set once per photo in JS to the collapsed bar height),
+       keeping the photo fully visible when collapsed. */
     .rp-photo-wrap {
-      flex: 1;
-      min-height: 0;
+      position: absolute;
+      inset: 0;
       padding: 14px 14px 0;
       display: flex;
       flex-direction: column;
@@ -243,8 +251,12 @@
       justify-content: center;
     }
 
+    /* The caption bar overlays the bottom of the photo wrap in BOTH states (collapsed =
+       short strip, expanded = grows up over the photo). It never participates in flow,
+       so it can never change the photo box or move the photo. */
     .rp-bottom {
-      flex-shrink: 0;
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
       padding: 10px 14px 0;
       display: flex;
       flex-direction: column;
@@ -254,10 +266,8 @@
       will-change: opacity;
     }
     .rp-bottom.visible { opacity: 1; }
-    /* Expanded: overlay the full caption over the photo (photo keeps its proportions behind) */
+    /* Expanded: grow up over the photo (photo keeps its size/position behind) */
     .rp-bottom.expanded {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
       max-height: 100%;
       overflow-y: auto;
       padding: 14px;
@@ -1934,9 +1944,11 @@
             (meta ? `<span class="meta">${escapeHtml(meta)}</span>` : '')
           : '';
 
-        // No separate caption row — the note IS the content.
+        // No separate caption row — the note IS the content. The (now hidden) caption
+        // bar still overlays the bottom; keep reserving its collapsed height below the
+        // note card so the card area matches a normal photo's area.
         bottom.classList.remove('expanded');
-        document.querySelector('.rp-photo-wrap').style.flex = '';
+        document.querySelector('.rp-photo-wrap').style.paddingBottom = bottom.offsetHeight + 'px';
         bottom.classList.remove('visible');
         return;
       }
@@ -1982,14 +1994,19 @@
 
       // Collapse to 3 lines and only reveal the toggle if the caption overflows.
       bottom.classList.remove('expanded');
-      document.querySelector('.rp-photo-wrap').style.flex = '';
       const toggle = document.getElementById('rp-caption-toggle');
       toggle.textContent = 'Show more';
       toggle.classList.remove('visible');
+      // After layout: (1) surface the toggle if the clamped caption is hiding content,
+      // and (2) set the photo wrap's constant bottom padding to the COLLAPSED bar
+      // height, so the photo centers within the visible area above the bar and stays
+      // fully visible. The wrap is full-height and this padding is fixed for the photo,
+      // so expanding the caption (which only overlays the bar) never moves the photo.
       requestAnimationFrame(() => {
         if (captionEl.scrollHeight - captionEl.clientHeight > 2) {
           toggle.classList.add('visible');
         }
+        document.querySelector('.rp-photo-wrap').style.paddingBottom = bottom.offsetHeight + 'px';
       });
 
       bottom.classList.add('visible');
@@ -2074,7 +2091,9 @@
     document.getElementById('overview-card').classList.add('visible');
     document.getElementById('rp-photo-overlay').innerHTML = '';
     document.querySelector('.rp-bottom').classList.remove('expanded');
-    document.querySelector('.rp-photo-wrap').style.flex = '';
+    // Clear the per-photo bottom padding — in overview mode the wrap is back in flow
+    // (position: static) and sizes to the overview card, so no reservation is needed.
+    document.querySelector('.rp-photo-wrap').style.paddingBottom = '';
     document.getElementById('rp-caption-toggle').classList.remove('visible');
     document.getElementById('rp-caption').textContent = '';
     document.getElementById('btn-prev').disabled = true;
@@ -2098,18 +2117,14 @@
     resetView();
   }
 
-  // Expand/collapse the caption. Expanded overlays the full text over the photo.
-  // Lock the photo wrapper's height so the photo keeps its size/position behind the overlay.
+  // Expand/collapse the caption. The photo wrap (and its bottom padding) never changes,
+  // so the centered photo stays exactly put; the caption bar simply grows up over the
+  // bottom of the photo and scrolls within itself (capped at the panel height).
   function toggleCaption() {
     const bottom   = document.querySelector('.rp-bottom');
     const toggle   = document.getElementById('rp-caption-toggle');
-    const photoWrap = document.querySelector('.rp-photo-wrap');
     const expanded = bottom.classList.toggle('expanded');
-    if (expanded) {
-      photoWrap.style.flex = `0 0 ${photoWrap.offsetHeight}px`;
-    } else {
-      photoWrap.style.flex = '';
-    }
+    if (expanded) bottom.scrollTop = 0;
     toggle.textContent = expanded ? 'Show less' : 'Show more';
   }
 

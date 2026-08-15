@@ -357,7 +357,24 @@
       border-radius: 3px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.6);
       cursor: default;
+      /* Hidden until the new src finishes loading, so a previously
+         opened photo never paints while the next one is fetching. */
+      opacity: 0;
+      transition: opacity 0.2s ease;
     }
+    #lightbox img.loaded { opacity: 1; }
+    #lightbox-spinner {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: rgba(255,255,255,0.75);
+      border-radius: 50%;
+      animation: lb-spin 0.8s linear infinite;
+      display: none;
+    }
+    #lightbox.loading #lightbox-spinner { display: block; }
+    @keyframes lb-spin { to { transform: rotate(360deg); } }
     #lightbox-close {
       position: absolute;
       top: 18px;
@@ -385,7 +402,7 @@
       pointer-events: none;
     }
 
-    /* ── INTERSTITIAL NOTE CARD — fills the photo area for photo-less notes ── */
+    /* ── INTERSTITIAL NOTE CARD — centered square for photo-less notes ── */
     .rp-photo.note-mode { cursor: default; }
     .rp-note {
       flex-direction: column;
@@ -394,8 +411,10 @@
       text-align: center;
       gap: 14px;
       padding: 28px 34px;
-      width: 100%;
-      height: 100%;
+      width: min(100%, 480px);
+      aspect-ratio: 1;
+      max-height: 100%;
+      border-radius: 5px;
       overflow-y: auto;
       background:
         radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%),
@@ -951,6 +970,7 @@
 
 <div id="lightbox">
   <div id="lightbox-close" onclick="closeLightbox()">✕</div>
+  <div id="lightbox-spinner"></div>
   <img id="lightbox-img" src="" alt="" />
 </div>
 
@@ -2272,13 +2292,30 @@
   // ============================================================
   // LIGHTBOX
   // ============================================================
+  let lbToken = 0;
   function openLightbox(src) {
     const lb = document.getElementById('lightbox');
-    document.getElementById('lightbox-img').src = src;
-    lb.classList.add('open');
+    const img = document.getElementById('lightbox-img');
+    const token = ++lbToken;
+    // Show the overlay with a spinner; the img stays hidden until the new
+    // src has actually loaded so the previous photo never flashes through.
+    lb.classList.add('open', 'loading');
+    img.classList.remove('loaded');
+    const done = () => {
+      if (token !== lbToken) return; // superseded by a newer open/close
+      lb.classList.remove('loading');
+      img.classList.add('loaded');
+    };
+    img.onload = done;
+    img.onerror = () => { if (token === lbToken) lb.classList.remove('loading'); };
+    img.src = src;
+    // A cached image can complete without firing a fresh load event.
+    requestAnimationFrame(() => { if (img.complete && img.naturalWidth > 0) done(); });
   }
   function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('open');
+    lbToken++; // cancel any in-flight reveal
+    document.getElementById('lightbox').classList.remove('open', 'loading');
+    document.getElementById('lightbox-img').classList.remove('loaded');
   }
 
   document.getElementById('lightbox').addEventListener('click', closeLightbox);

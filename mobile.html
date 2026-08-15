@@ -65,6 +65,7 @@
     .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
     .btn:active { transform: scale(0.985); }
     .ov-maplink { color: var(--muted); font-size: 12.5px; text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+    .ov-note { color: var(--muted); font-size: 12.5px; margin: 0; }
 
     /* =================== TOP BAR =================== */
     .topbar {
@@ -84,7 +85,9 @@
     .cell { position: relative; aspect-ratio: 1; background: var(--bg-elev); overflow: hidden; border: 0; padding: 0; }
     .cell img { width: 100%; height: 100%; object-fit: cover; }
     .cell:active img { opacity: 0.7; }
-    .cell-badge { position: absolute; right: 5px; bottom: 5px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; padding-left: 2px; }
+    /* Videos have no thumbnail — a simple centered camcorder icon on the plain cell. */
+    .cell.is-video { display: flex; align-items: center; justify-content: center; color: #33363d; }
+    .cell.is-video svg { width: 30px; height: 30px; }
 
     /* =================== SLIDESHOW =================== */
     #slideshow.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
@@ -182,6 +185,23 @@
 
     .loading { padding: 60px 20px; text-align: center; color: var(--muted); }
 
+    /* =================== DESKTOP NUDGE MODAL =================== */
+    .dmodal {
+      position: fixed; inset: 0; z-index: 50;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      padding: 24px;
+    }
+    .dmodal.active { display: flex; }
+    .dmodal-card {
+      background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px;
+      padding: 22px 22px 16px; max-width: 340px; text-align: center;
+    }
+    .dmodal-text { font-size: 14px; line-height: 1.55; margin: 0 0 12px; }
+    .dmodal-text a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 1px; }
+    .dmodal-dismiss { border: none; background: none; color: var(--muted); font-size: 12.5px; padding: 6px 10px; }
+
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; }
     }
@@ -206,6 +226,7 @@
       <button class="btn btn-primary" data-go="slide" data-idx="0">▶ Start slideshow</button>
       <button class="btn" data-go="gallery">▦ View all photos</button>
     </div>
+    <p class="ov-note">for best experience, open this on desktop</p>
   </div>
 </section>
 
@@ -254,6 +275,14 @@
     </div>
   </div>
 </section>
+
+<!-- ============ DESKTOP NUDGE MODAL ============ -->
+<div class="dmodal" id="dmodal">
+  <div class="dmodal-card">
+    <p class="dmodal-text">for best experience on desktop, <a href="/?desktop">click here</a> to open the desktop version</p>
+    <button class="dmodal-dismiss" id="dmodal-dismiss">stay on mobile version</button>
+  </div>
+</div>
 
 <script>
   // ── Shared helpers copied from paria-trip-map.html (single source of truth) ──
@@ -346,9 +375,8 @@
       cell.setAttribute('aria-label', p.title || `Photo ${i + 1}`);
       cell.addEventListener('click', () => startSlideshow(i));
       if (p.isVideo) {
-        cell.innerHTML =
-          `<div style="width:100%;height:100%;background:${p.color}22"></div>` +
-          `<span class="cell-badge">▶</span>`;
+        cell.classList.add('is-video');
+        cell.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>';
       } else {
         const img = document.createElement('img');
         img.loading = 'lazy'; img.decoding = 'async'; img.alt = p.title || '';
@@ -544,6 +572,17 @@
     if (e.key === 'ArrowRight') step(1);
     else if (e.key === 'ArrowLeft') step(-1);
   });
+
+  // ── Desktop nudge: opened on a wide screen → suggest the full map.
+  //    Mirrors the map's own detection (it redirects here when min(screen w/h) ≤ 768). ──
+  (function initDesktopNudge() {
+    const wideScreen = Math.min(screen.width, screen.height) > 768;
+    if (!wideScreen) return;
+    const modal = document.getElementById('dmodal');
+    modal.classList.add('active');
+    document.getElementById('dmodal-dismiss').addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
+  })();
 
   // ── Boot: load content.json (same cache-busted fetch as the map) ──
   fetch(`content.json?t=${Date.now()}`)

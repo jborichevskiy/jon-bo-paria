@@ -6,3 +6,14 @@ plans/
 trip-data.js
 dist/
 .wrangler/
+
+# local notes & scratch (kept on disk, not in git)
+todos.md
+context.md
+export-photos.applescript
+scrape_album.py
+scrape_album.md
+
+# os / agent cruft
+.DS_Store
+.claude/

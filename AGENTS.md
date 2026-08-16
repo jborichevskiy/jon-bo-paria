@@ -23,10 +23,17 @@ content.json       THE source of truth — captions, locations, routeFrac, video
   `caption`, `location` `{lat,lng}`, `routeFrac` (0–1 position along the trail),
   `dateCreated` (ISO-UTC), `isVideo`, `coreTrip`. Edited via the editor; nothing else
   generates it during normal use.
+- **`about.html`** — static about page (blog link + Noun Project icon attribution).
+  Linked from the `?` button in the map header. No JS, reads nothing.
+- **`map-icon.svg`** — site favicon (Noun Project map icon, CC BY 3.0 — attribution lives
+  on `about.html`). White rounded tile + black glyph so it's visible on dark browser chrome.
+  Referenced by `paria-trip-map.html`, `mobile.html`, and `about.html`.
 - **`paria-trip-map.html`** — the map (deployed as `index.html`). Fetches `content.json`
   directly (cache-busted), so a fresh save shows on refresh. Renders images in `<img>`,
-  videos in `<video controls>`. On small screens (≤768px) it redirects to `mobile.html`
-  (append `?desktop` to force the full map on a phone).
+  videos in `<video controls>`. Also has a full-screen gallery grid overlay
+  (`openGallery()`, grid icon in the header or "View all photos" on the overview card);
+  clicking a cell drops into the slideshow via `stepTo(i)`. On small screens (≤768px) it
+  redirects to `mobile.html` (append `?desktop` to force the full map on a phone).
 - **`mobile.html`** — phone-only, photo-first experience: an overview card, a gallery grid,
   and a caption slideshow. No map, no filtering. Reads the same `content.json` (and the same
   `photos/web/` downscaled copies), so it stays in sync with the editor automatically.

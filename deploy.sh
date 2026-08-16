@@ -11,6 +11,8 @@ mkdir -p dist
 # Core files
 cp paria-trip-map.html dist/index.html
 cp mobile.html dist/          # phone-only photo gallery/slideshow (index.html redirects here on small screens)
+cp about.html dist/           # about page (blog link + icon attribution), linked from the header "?" button
+cp map-icon.svg dist/         # favicon (Noun Project map icon, CC BY 3.0 — attributed on about.html)
 cp content.json dist/
 
 # Generate/refresh downscaled web copies (photos/web/…) that the photo panel loads —

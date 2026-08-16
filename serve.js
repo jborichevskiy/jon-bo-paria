@@ -15,7 +15,8 @@ const MIME = {
   '.html': 'text/html', '.js':   'application/javascript',
   '.json':'application/json',  '.css':  'text/css',
   '.jpeg':'image/jpeg',        '.jpg':  'image/jpeg',
-  '.png': 'image/png',         '.gpx':  'application/gpx+xml',
+  '.png': 'image/png',         '.svg':  'image/svg+xml',
+  '.gpx': 'application/gpx+xml',
   // Shared-album "HEIC" exports are actually JPEG bytes — serve them as such so browsers render them.
   '.heic':'image/jpeg',
   '.mov': 'video/quicktime',   '.mp4':  'video/mp4',
